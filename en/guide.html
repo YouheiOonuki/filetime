@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to read pwdLastSet, lastLogonTimestamp and accountExpires – Guide and FAQ | FILETIME &amp; LDAP Timestamp Converter | yorozu-craft</title>
+  <meta name="description" content="What the 18-digit Active Directory timestamps mean and how to convert them: why lastLogonTimestamp can be 14 days behind, what accountExpires 0 and 9223372036854775807 mean, why ADUC shows the expiry a day earlier, and why maxPwdAge is negative. Every answer links to Microsoft documentation.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yorozu-craft.com/filetime/en/guide.html">
+  <link rel="alternate" hreflang="ja" href="https://yorozu-craft.com/filetime/guide.html">
+  <link rel="alternate" hreflang="en" href="https://yorozu-craft.com/filetime/en/guide.html">
+  <link rel="alternate" hreflang="x-default" href="https://yorozu-craft.com/filetime/guide.html">
+
+  <meta property="og:title" content="How to read pwdLastSet, lastLogonTimestamp and accountExpires">
+  <meta property="og:description" content="The 18-digit AD timestamps explained: special values, negative intervals and the lastLogonTimestamp lag, with Microsoft sources.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://yorozu-craft.com/filetime/en/guide.html">
+  <meta property="og:site_name" content="yorozu-craft">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ja_JP">
+  <meta property="og:image" content="https://yorozu-craft.com/filetime/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- FAQ (keep in sync with #faq below) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I convert pwdLastSet or lastLogonTimestamp to a date?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The value counts 100-nanosecond intervals since 1601-01-01 UTC. Paste it here, or run [datetime]::FromFileTimeUtc(value) in PowerShell or w32tm /ntte value."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why is lastLogonTimestamp not the real last logon time?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It only updates when the stored value is older than now minus msDS-LogonTimeSyncInterval (14 days by default), so it can lag 9–14 days. For the exact time, compare lastLogon on every domain controller."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does accountExpires 9223372036854775807 mean?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Never expires; 0 means the same. When a date is set, Active Directory Users and Computers shows the day before as \"End of\"."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why is maxPwdAge negative?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Intervals are stored as a negative count of 100 ns units: -36288000000000 is 42 days. The password expires at pwdLastSet plus the absolute value."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I convert a FILETIME in Excel?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use =A1/864000000000-109205 for UTC and add your offset in hours divided by 24. Excel keeps 15 digits, so sub-second precision is lost."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Google AdSense（サイト所有確認 + 広告配信スクリプト） -->
+  <meta name="google-adsense-account" content="ca-pub-5375267956079717">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5375267956079717"
+     crossorigin="anonymous"></script>
+
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>FILETIME &amp; LDAP timestamps: guide and FAQ</h1>
+    <p class="subtitle">How to read the 18-digit values, the special values, and where each answer comes from</p>
+    <p class="lang-switch"><a href="../guide.html" hreflang="ja" lang="ja">日本語</a></p>
+  </header>
+
+  <main class="app-main">
+
+    <p class="card" style="text-align:center"><a href="./">▶ Open the FILETIME &amp; LDAP Timestamp Converter</a></p>
+
+    <p class="small">This page covers how to use the converter, what the special values mean, and five common questions. Every answer links to Microsoft documentation.</p>
+
+    <article class="card content" id="howto">
+      <h2>How to use it</h2>
+      <ol>
+        <li>Paste an 18-digit value or a line like "pwdLastSet : 134…".</li>
+        <li>Read the date in UTC, your time zone and one you pick.</li>
+        <li>Pick a date to get the FILETIME and LDAP filter examples.</li>
+        <li>Paste Get-ADUser or ldifde output to convert every timestamp.</li>
+      </ol>
+      <details>
+        <summary>Accepted formats</summary>
+        <table>
+          <thead><tr><th>Format</th><th>Example</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td>FILETIME (LDAP Integer8)</td><td><code>134347122000000000</code></td><td>100 ns intervals since 1601-01-01 00:00 UTC: pwdLastSet, lastLogon, lastLogonTimestamp, accountExpires, badPasswordTime, lockoutTime</td></tr>
+            <tr><td>Hex</td><td><code>0x01DD2D4D7C4C8000</code></td><td>64-bit value; top bit set means negative (two's complement)</td></tr>
+            <tr><td>Interval (negative)</td><td><code>-36288000000000</code></td><td>maxPwdAge, minPwdAge, lockoutDuration, lockOutObservationWindow; this one is 42 days</td></tr>
+            <tr><td>Generalized time</td><td><code>20260924083000.0Z</code></td><td>whenCreated, whenChanged; Z means UTC</td></tr>
+            <tr><td>Unix seconds / ms</td><td><code>1758702600</code></td><td>Since 1970-01-01 UTC (10 or 13 digits)</td></tr>
+            <tr><td>.NET DateTime.Ticks</td><td><code>639000000000000000</code></td><td>100 ns since 0001-01-01; offset from FILETIME 504911232000000000</td></tr>
+          </tbody>
+        </table>
+        <p>"Auto" reads 10–11 digits as Unix seconds, 12–14 digits as Unix milliseconds and anything else as FILETIME. If a FILETIME would land after 2200, the .NET ticks reading is shown too.</p>
+      </details>
+    </article>
+
+    <article class="card content" id="special">
+      <h2>Special values: 0, 9223372036854775807 and negatives</h2>
+      <p>accountExpires 0 or 9223372036854775807 means never expires. pwdLastSet 0 means the user must change the password at next logon. Negative values such as maxPwdAge are intervals, not dates.</p>
+      <details>
+        <summary>All special values</summary>
+        <table>
+          <thead><tr><th>Attribute</th><th>Value</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>accountExpires</td><td><code>9223372036854775807</code> (0x7FFFFFFFFFFFFFFF)</td><td>Never; default for a new account</td></tr>
+            <tr><td>accountExpires</td><td><code>0</code></td><td>Never; set when an end date is removed</td></tr>
+            <tr><td>pwdLastSet</td><td><code>0</code></td><td>Must change password at next logon (unless Password never expires)</td></tr>
+            <tr><td>pwdLastSet</td><td><code>-1</code> (write only)</td><td>Clears "must change password at next logon"</td></tr>
+            <tr><td>lastLogon, lastLogonTimestamp</td><td><code>0</code></td><td>No record</td></tr>
+            <tr><td>lockoutTime</td><td><code>0</code></td><td>Not locked out</td></tr>
+            <tr><td>msDS-UserPasswordExpiryTimeComputed</td><td><code>9223372036854775807</code></td><td>Password never expires (flag set, smart card required, computer or trust account, or unlimited maximum age)</td></tr>
+            <tr><td>msDS-UserPasswordExpiryTimeComputed</td><td><code>0</code></td><td>pwdLastSet is 0 or not set</td></tr>
+            <tr><td>maxPwdAge</td><td><code>-9223372036854775808</code> (0x8000000000000000)</td><td>Unlimited maximum password age</td></tr>
+          </tbody>
+        </table>
+        <p>msDS-UserPasswordExpiryTimeComputed holds the actual password expiry, including fine-grained password policies. lastLogon is stored per domain controller and is not replicated.</p>
+      </details>
+    </article>
+
+    <article class="card content" id="faq">
+      <h2>Frequently asked questions</h2>
+      <dl class="faq">
+        <dt>How do I convert pwdLastSet or lastLogonTimestamp to a date?</dt>
+        <dd>The value counts 100-nanosecond intervals since 1601-01-01 UTC. Paste it here, or run <code>[datetime]::FromFileTimeUtc(value)</code> in PowerShell or <code>w32tm /ntte value</code>.</dd>
+        <dt>Why is lastLogonTimestamp not the real last logon time?</dt>
+        <dd>It only updates when the stored value is older than now minus msDS-LogonTimeSyncInterval (14 days by default), so it can lag 9–14 days. For the exact time, compare lastLogon on every domain controller.</dd>
+        <dt>What does accountExpires 9223372036854775807 mean?</dt>
+        <dd>Never expires; 0 means the same. When a date is set, Active Directory Users and Computers shows the day before as "End of".</dd>
+        <dt>Why is maxPwdAge negative?</dt>
+        <dd>Intervals are stored as a negative count of 100 ns units: -36288000000000 is 42 days. The password expires at pwdLastSet plus the absolute value.</dd>
+        <dt>How do I convert a FILETIME in Excel?</dt>
+        <dd>Use <code>=A1/864000000000-109205</code> for UTC and add your offset in hours divided by 24. Excel keeps 15 digits, so sub-second precision is lost.</dd>
+      </dl>
+    </article>
+
+    <article class="card content" id="basis">
+      <h2>Sources</h2>
+      <p>Sources: Microsoft Learn (Active Directory Schema and others), [MS-ADTS], [MS-SAMR]. Last checked 2026-09-24.</p>
+      <details>
+        <summary>Links to the documents</summary>
+        <ul class="sources">
+          <li><a href="https://learn.microsoft.com/windows/win32/sysinfo/file-times" target="_blank" rel="noopener">File Times</a> (definition of FILETIME)</li>
+          <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-pwdlastset" target="_blank" rel="noopener">Pwd-Last-Set</a>, <a href="https://learn.microsoft.com/windows/win32/ad/security-properties" target="_blank" rel="noopener">User Security Attributes</a> (pwdLastSet 0 and -1)</li>
+          <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-accountexpires" target="_blank" rel="noopener">Account-Expires</a>, <a href="https://learn.microsoft.com/windows/win32/adsi/account-expiration" target="_blank" rel="noopener">Account Expiration (LDAP Provider)</a> (never values, ADUC one-day difference)</li>
+          <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-lastlogontimestamp" target="_blank" rel="noopener">Last-Logon-Timestamp</a>, <a href="https://learn.microsoft.com/troubleshoot/mem/configmgr/discovery/lastlogontimestamp-not-accurate" target="_blank" rel="noopener">KB 2679653</a> (9–14 day lag), <a href="https://learn.microsoft.com/windows/win32/adschema/a-lastlogon" target="_blank" rel="noopener">Last-Logon</a>, <a href="https://learn.microsoft.com/windows/win32/adschema/a-lockouttime" target="_blank" rel="noopener">Lockout-Time</a></li>
+          <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-lockoutduration" target="_blank" rel="noopener">Lockout-Duration</a>, [MS-SAMR] <a href="https://learn.microsoft.com/openspecs/windows_protocols/ms-samr/7b2aeb27-92fc-41f6-8437-deb65d950921" target="_blank" rel="noopener">1.1 Glossary (delta time)</a> (negative intervals)</li>
+          <li>[MS-ADTS] <a href="https://learn.microsoft.com/openspecs/windows_protocols/ms-adts/f9e9b7e2-c7ac-4db6-ba38-71d9696981e9" target="_blank" rel="noopener">3.1.1.4.5.33 msDS-UserPasswordExpiryTimeComputed</a></li>
+          <li><a href="https://learn.microsoft.com/windows/client-management/mdm/policy-csp-devicelock#maximumpasswordage" target="_blank" rel="noopener">Policy CSP - DeviceLock: MaximumPasswordAge</a> (default 42 days)</li>
+          <li><a href="https://learn.microsoft.com/windows/win32/adschema/s-string-generalized-time" target="_blank" rel="noopener">String(Generalized-Time) syntax</a></li>
+          <li><a href="https://learn.microsoft.com/troubleshoot/windows-server/active-directory/convert-datetime-attributes-to-standard-format" target="_blank" rel="noopener">KB 555936</a> (w32tm /ntte; its example is one of our test vectors)</li>
+          <li><a href="https://learn.microsoft.com/dotnet/api/system.datetime.ticks" target="_blank" rel="noopener">DateTime.Ticks</a></li>
+        </ul>
+      </details>
+    </article>
+
+    <article class="card content" id="notes">
+      <h2>Notes and your data</h2>
+      <ul>
+        <li>Values and pasted text are converted in this browser and never uploaded.</li>
+        <li>Only your time zone choice is stored (localStorage key <code>filetime_tz</code>).</li>
+        <li>Share links keep the value after the "#", which is never sent to a server.</li>
+      </ul>
+      <p><a href="https://docs.google.com/forms/d/e/1FAIpQLSd8B90qh5lEIyr25iw1jOjdQjOyaPZ1_z2wMB4kH-EmEeJYWw/viewform?usp=pp_url&amp;entry.585564634=filetime" target="_blank" rel="noopener">Feedback form (Google Forms, in Japanese; you can write in English)</a>. We read every message but do not reply.</p>
+      <p>Site-wide: <a href="../../en/about.html">About</a> · <a href="../../en/privacy-policy.html">Privacy policy</a>.</p>
+    </article>
+
+    <article class="card content" id="changelog">
+      <h2>Changelog</h2>
+      <ul>
+        <li><time datetime="2026-09-24">2026-09-24</time> Published</li>
+      </ul>
+    </article>
+
+  </main>
+
+  <footer class="app-footer">
+    <nav class="footer-nav" aria-label="Footer">
+      <ul>
+        <li><a href="../../">yorozu-craft (Japanese)</a></li>
+        <li><a href="./">FILETIME &amp; LDAP Timestamp Converter</a></li>
+        <li><a href="./guide.html" aria-current="page">Guide and FAQ</a></li>
+        <li><a href="../../en/about.html">About</a></li>
+        <li><a href="../../en/privacy-policy.html">Privacy policy</a></li>
+      </ul>
+    </nav>
+    <p>&copy; 2026 yorozu-craft. All rights reserved.</p>
+  </footer>
+
+  <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

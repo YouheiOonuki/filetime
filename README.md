@@ -1,81 +1,55 @@
-# __TITLE__
+# FILETIME・LDAP タイムスタンプ変換
 
-公開 URL: **https://yorozu-craft.com/__REPO__/**
+公開 URL: **https://yorozu-craft.com/filetime/** （英語版: https://yorozu-craft.com/filetime/en/）
 
-__DESCRIPTION__
-yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github.io の README](https://github.com/YouheiOonuki/youheioonuki.github.io) を参照）。
-
-<!-- TEMPLATE-BEGIN -->
-## テンプレートの使い方（`tools/init.mjs` を実行すると、この節は消えます）
-
-yorozu-craft の新しいツールの雛形です。サイト共通の決まり（youheioonuki.github.io の README「ツールを追加するとき」）のうち、ファイルで守れるものは最初から入れてあります。
-
-1. GitHub で「Use this template」→ リポジトリ名は短いローマ字＋種類（例: `loan-sim`）。URL になる
-2. クローンして、初期化スクリプトを 1 回だけ実行する（Node 20 以上）
-
-   ```sh
-   node tools/init.mjs loan-sim "住宅ローン 返済シミュレーター" "毎月の返済額と総返済額をすぐ計算。" --pwa
-   ```
-
-   - `__REPO__`・`__TITLE__`・`__DESCRIPTION__`・日付を置き換える
-   - `--pwa` を付けないと、オフライン対応の部分（`sw.js`・`manifest.webmanifest`・`PWA-BEGIN`〜`PWA-END`）を消す
-   - README のこの節と `tools/init.mjs` 自身を消す
-3. `node --test tests/*.test.js` が通ることを確かめてからコミット
-4. 残りは youheioonuki.github.io の README「ツールを追加するとき」の手順どおり（Pages の公開と Enforce HTTPS、トップの一覧・robots.txt・URL 表への追加など）
-
-最初から入っているもの:
-
-| 決まり | 入っている場所 |
-|-------|---------------|
-| canonical・OGP・AdSense・Cloudflare ビーコン | `index.html`・`guide.html` の `<head>` と `</body>` 直前 |
-| 共通ページへの相対リンク（`../about.html`・`../privacy-policy.html`） | 各ページのフッター |
-| ツール配下の 404 | `404.html`（youheioonuki.github.io のものと同じ） |
-| 保存キーの接頭辞 `<リポジトリ名>_`・try/catch | `main.js` の `store` |
-| 共有 URL は `#s=` | `main.js` の `toShareHash` / `fromShareHash` |
-| 保存内容を JSON ファイルに書き出し・読み込み（`{tool, version, exportedAt, data}`。読み込み時は `tool` を確かめ、正規化してから確認のうえ上書き） | `calc.js` の `backupFileName` / `buildBackup` / `parseBackup`、`main.js` の書き出し・読み込み、`index.html` のボタン、`tests/backup.test.js` |
-| SW のキャッシュ名の接頭辞・自分のパスだけ扱う・`./sw.js` で登録 | `sw.js`・`main.js` |
-| manifest の `id` は `/<リポジトリ名>/` | `manifest.webmanifest` |
-| 使い方ページは `guide.html`（注意・データの扱い・根拠と確認日・更新履歴の節つき） | `guide.html` |
-| 要望・不具合の報告フォーム（全ツール共通の Google フォーム。リポジトリ名が入った状態で開く） | `guide.html` の「ご利用上の注意・データの扱い」 |
-| 時点のある値は値・出典・確認日をセットで 1 か所に | `constants.js`（テストで出典と確認日の書き忘れを検出） |
-| 計算は画面から切り離した純粋関数＋テスト | `calc.js`・`tests/`・`.github/workflows/test.yml` |
-| 端末のフォント・ダークモード | `style.css` |
-| MIT ライセンス | `LICENSE` |
-
-差し替えが必要なもの: `favicon.svg`・`apple-touch-icon.png`（180×180）・`og-image.png`（1200×630）は仮の絵なので、ツールに合わせて作り直す。
-<!-- TEMPLATE-END -->
+pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時に、日時を数値に。貼り付けた一覧もまとめて変換。ブラウザだけで動きます。
+yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github.io の README](https://github.com/YouheiOonuki/youheioonuki.github.io) を参照）。企画は yorozu-plans の `docs/GLOBAL.md`（K64）。
 
 ## 機能
 
-- （できることを箇条書きで）
-- 入力内容はこの端末のブラウザにだけ保存し、外部には送信しない
+- **数値 → 日時**: FILETIME（LDAP の Integer8。1601-01-01 UTC からの 100 ns の数）を UTC・端末の時刻・選んだタイムゾーン（IANA 名、Intl）で表示。ISO 8601、16 進、Unix 秒・ミリ秒、.NET DateTime.Ticks、一般化時刻、今からの日数も
+- 入力は 10 進（カンマ・空白入り可）、`0x` の 16 進（最上位ビットは負）、「`pwdLastSet : 134…`」「`accountExpires=…`」の行、Unix 秒・ミリ秒、.NET ticks、一般化時刻（`20260924083000.0Z`）、日時の文字列。「自動」は 10〜11 桁を Unix 秒、12〜14 桁を Unix ミリ秒、それ以外を FILETIME として読む
+- **特別な値の説明**: accountExpires の `0`・`9223372036854775807`（無期限）、pwdLastSet の `0`（次回ログオン時に変更）と `-1`、lockoutTime の `0`、msDS-UserPasswordExpiryTimeComputed の `0`・最大値、maxPwdAge の最小値（無期限）。負の値（maxPwdAge・lockoutDuration などの期間）は日・時・分で表示
+- 属性ごとの注意: lastLogonTimestamp の 9〜14 日の遅れ、lastLogon は DC ごと、accountExpires は ADUC で 1 日前に表示、pwdLastSet からの経過日数と最大有効期間（既定 42 日）での期限
+- **日時 → 数値**: LDAP フィルター・Get-ADUser -Filter の例つき
+- **まとめて変換**: `Get-ADUser -Properties *`・ldifde・csvde の出力、「名前=値」、18 桁の数の並びから、日時の属性と FILETIME らしい大きさの数だけを拾って表に。TSV でコピー
+- PowerShell・w32tm の確認用コマンドを文字として表示（実行はしない）
+- 共有リンク `#v=値&a=属性名`（`#` 以降なのでサーバーに送られない）
+- 結果の直後に ADSearch への導線を 1 行（サイト README の 21）
+- 保存するのはタイムゾーンの選択だけ（`filetime_tz`）。ファイルへの書き出し・読み込み（サイト README の 20）は、保存しているのが表示の設定 1 つだけなので付けていない
+
+文章の量は yorozu-plans の `docs/WRITING.md`（道具）に合わせている。直したら `python3 tools/writing/measure.py --type tool index.html guide.html` と `--en en/index.html en/guide.html` で OK を確かめる。詳しい表・条文・出典の URL は使い方ページの `<details>` の中。
 
 ## 計算の仕様・根拠
 
-（計算式、使っている値と出典。値は `constants.js` にまとめ、画面の「根拠と確認日」にも出す）
+- 64 ビットの値はすべて BigInt で扱い、桁を落とさない。日時は秒単位を Date で組み立て、1 秒未満の 7 桁は BigInt の余りから出す（`calc.js`）
+- タイムゾーンは `Intl.DateTimeFormat` の IANA 名。壁時計 → UTC は 2 回の補正で求め、夏時間で 2 回ある時刻は早いほう、無い時刻は切り替え後にずらす
+- 一般化時刻の `±hhmm` は ISO 8601（RFC 4517）どおり地方時の UTC からのずれとして読む（AD の値は常に `Z`）
+- 属性の意味の出典は `constants.js`（Microsoft Learn・[MS-ADTS]・[MS-SAMR]。確認日 2026-09-24）。`guide.html` の「根拠と確認日」にも同じものを出している
+- テストの既知の値: `0`＝1601-01-01、`116444736000000000`＝1970-01-01、`9223372036854775807`＝30828-09-14 02:48:05.4775807、KB 555936 の `128271382742968750`＝2007-06-24 05:57:54.2968750 UTC、How to Specify Comparison Values の `125911583990000000`＝1999-12-31 23:59:59 UTC、[MS-SAMR] の 20 分＝`-12000000000`
 
 ## 保守
 
 | 時期 | 確認すること | 直す場所 |
 |------|------------|---------|
-| （例: 毎年4月ごろ） | （例: 料率の改定） | `constants.js`、`guide.html` の最終確認日 |
+| 年に 1 回 | Microsoft Learn の各ページ（属性の説明、既定値）が変わっていないか | `constants.js`、`guide.html`・`en/guide.html` の最終確認日 |
+| 新しい日時属性に気づいたとき | 属性の分類に足す | `calc.js` の `NAMES`、テスト |
 
-値や計算を直したら、`guide.html` の「更新履歴」に日付と内容を 1 行足す。
+値や説明を直したら、`guide.html` と `en/guide.html` の「更新履歴」に日付と内容を 1 行足す。
 
 ## ファイル
 
 | ファイル | 役割 |
 |---------|------|
-| `index.html` | ツール本体 |
-| `guide.html` | 使い方・根拠と確認日・よくある質問・ご利用上の注意・更新履歴 |
-| `calc.js` | 計算ロジック（画面から切り離した純粋関数） |
-| `constants.js` | 時点のある値（値・出典・確認日） |
-| `main.js` | 画面の制御・保存・共有リンク |
+| `index.html` / `en/index.html` | ツール本体（日本語 / 英語） |
+| `guide.html` / `en/guide.html` | 使い方・形式・特別な値・よくある質問（FAQPage）・根拠・注意・更新履歴 |
+| `calc.js` | 変換・読み取り・まとめて変換・共有リンク（純粋関数。日英共通） |
+| `constants.js` | 出典（Microsoft の文書と確認日） |
+| `main.js` | 画面の制御。日英の文言（`STR`）を `<html lang>` で切り替える |
 | `style.css` | 見た目（和紙風の配色、ダークモード対応） |
-| `sw.js` / `manifest.webmanifest` | オフライン対応（使う場合のみ） |
 | `404.html` | ツール配下の存在しない URL で出るページ（サイト共通のもの） |
 | `favicon.svg` / `apple-touch-icon.png` / `og-image.png` | アイコン / ホーム画面用アイコン / SNS 共有用画像（1200×630） |
-| `sitemap.xml` | サイトマップ（robots.txt はドメイン直下で管理） |
+| `sitemap.xml` | サイトマップ（日英 4 ページ、hreflang つき） |
 | `tests/*.test.js` | テスト（`node --test tests/*.test.js`。`.github/workflows/test.yml` で push・PR のたびに自動実行） |
 
 ## ライセンス

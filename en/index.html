@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FILETIME・LDAP タイムスタンプ変換（pwdLastSet・lastLogonTimestamp を日時に）｜yorozu-craft</title>
-  <meta name="description" content="pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時（UTC・日本時間）に、日時を数値に変換。0 や 9223372036854775807 の意味、負の値（maxPwdAge）も説明。Get-ADUser の出力を貼り付けてまとめて変換。ブラウザだけで動き、値は送信しません。">
+  <title>FILETIME &amp; LDAP Timestamp Converter – pwdLastSet, lastLogonTimestamp, accountExpires | yorozu-craft</title>
+  <meta name="description" content="Convert 18-digit Windows FILETIME / LDAP timestamps (pwdLastSet, lastLogonTimestamp, accountExpires, badPasswordTime) to a date in UTC or any time zone, and back. Explains 0, 9223372036854775807 (never) and negative intervals like maxPwdAge. Paste Get-ADUser output to convert every value. Runs in your browser; nothing is uploaded.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://yorozu-craft.com/filetime/">
+  <link rel="canonical" href="https://yorozu-craft.com/filetime/en/">
   <link rel="alternate" hreflang="ja" href="https://yorozu-craft.com/filetime/">
   <link rel="alternate" hreflang="en" href="https://yorozu-craft.com/filetime/en/">
   <link rel="alternate" hreflang="x-default" href="https://yorozu-craft.com/filetime/">
 
-  <meta property="og:title" content="FILETIME・LDAP タイムスタンプ変換｜yorozu-craft">
-  <meta property="og:description" content="pwdLastSet・lastLogonTimestamp・accountExpires の 18 桁を日時に。0・無期限・負の値の意味つき。一覧の貼り付けでまとめて変換。">
+  <meta property="og:title" content="FILETIME &amp; LDAP Timestamp Converter">
+  <meta property="og:description" content="pwdLastSet, lastLogonTimestamp and accountExpires to a readable date, with the special values explained. Paste a list to convert them all.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://yorozu-craft.com/filetime/">
+  <meta property="og:url" content="https://yorozu-craft.com/filetime/en/">
   <meta property="og:site_name" content="yorozu-craft">
-  <meta property="og:locale" content="ja_JP">
-  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ja_JP">
   <meta property="og:image" content="https://yorozu-craft.com/filetime/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -29,13 +29,13 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "FILETIME・LDAP タイムスタンプ変換",
-    "description": "pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時に、日時を数値に。貼り付けた一覧もまとめて変換。ブラウザだけで動きます。",
-    "url": "https://yorozu-craft.com/filetime/",
-    "applicationCategory": "UtilitiesApplication",
+    "name": "FILETIME & LDAP Timestamp Converter",
+    "description": "Convert Windows FILETIME / Active Directory Integer8 timestamps (pwdLastSet, lastLogonTimestamp, accountExpires) to dates and back, with special values explained and bulk conversion of pasted output.",
+    "url": "https://yorozu-craft.com/filetime/en/",
+    "applicationCategory": "DeveloperApplication",
     "operatingSystem": "All",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" },
-    "inLanguage": "ja"
+    "inLanguage": "en"
   }
   </script>
 
@@ -44,53 +44,53 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5375267956079717"
      crossorigin="anonymous"></script>
 
-  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
   <header class="app-header">
-    <h1>FILETIME・LDAP タイムスタンプ変換</h1>
-    <p class="subtitle">AD の 18 桁の日時を読める形に。値は外部に送信しません。</p>
-    <p class="lang-switch"><a href="./en/" hreflang="en" lang="en">English</a></p>
+    <h1>FILETIME &amp; LDAP Timestamp Converter</h1>
+    <p class="subtitle">Turn 18-digit AD timestamps into dates and back. Your values never leave this browser.</p>
+    <p class="lang-switch"><a href="../" hreflang="ja" lang="ja">日本語</a></p>
   </header>
 
   <main class="app-main">
 
     <section class="card" aria-labelledby="h-single">
-      <h2 id="h-single">数値 → 日時</h2>
+      <h2 id="h-single">Timestamp → date</h2>
       <div class="field">
-        <label for="value">値（18 桁の数か「属性 : 値」の行）</label>
-        <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例：134000000000000000">
-        <p class="hint">カンマ入り・0x の 16 進も読みます。</p>
+        <label for="value">Value (18-digit number, hex, or a whole line such as "pwdLastSet : 134…")</label>
+        <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. 134000000000000000">
+        <p class="hint">Commas, spaces and 0x hex are fine.</p>
       </div>
       <p class="examples">
-        <span class="small">例：</span>
+        <span class="small">Examples:</span>
         <button type="button" class="chip" data-example="pwdLastSet : 134347122000000000">pwdLastSet</button>
         <button type="button" class="chip" data-example="lastLogonTimestamp : 134340000000000000">lastLogonTimestamp</button>
-        <button type="button" class="chip" data-example="accountExpires : 9223372036854775807">accountExpires 無期限</button>
+        <button type="button" class="chip" data-example="accountExpires : 9223372036854775807">accountExpires never</button>
         <button type="button" class="chip" data-example="pwdLastSet : 0">pwdLastSet 0</button>
         <button type="button" class="chip" data-example="maxPwdAge : -36288000000000">maxPwdAge</button>
         <button type="button" class="chip" data-example="whenCreated : 20260924083000.0Z">whenCreated</button>
       </p>
       <div class="field-row">
         <div class="field">
-          <label for="mode">数値の種類</label>
+          <label for="mode">Value type</label>
           <select id="mode">
-            <option value="auto">自動（18 桁は FILETIME）</option>
-            <option value="filetime">FILETIME・LDAP（1601 年から 100 ns 単位）</option>
-            <option value="unix">Unix 秒</option>
-            <option value="unixms">Unix ミリ秒</option>
+            <option value="auto">Auto (18 digits = FILETIME)</option>
+            <option value="filetime">FILETIME / LDAP (100 ns since 1601)</option>
+            <option value="unix">Unix seconds</option>
+            <option value="unixms">Unix milliseconds</option>
             <option value="dotnet">.NET DateTime.Ticks</option>
-            <option value="gentime">一般化時刻（20260924083000.0Z）</option>
-            <option value="datetime">日時（2026-09-24 08:30）</option>
+            <option value="gentime">Generalized time (20260924083000.0Z)</option>
+            <option value="datetime">Date and time (2026-09-24 08:30)</option>
           </select>
         </div>
         <div class="field">
-          <label for="attr">属性</label>
+          <label for="attr">Attribute</label>
           <select id="attr">
-            <option value="">行から読む・指定なし</option>
+            <option value="">From the line / none</option>
             <option>pwdLastSet</option>
             <option>lastLogonTimestamp</option>
             <option>lastLogon</option>
@@ -105,63 +105,63 @@
           </select>
         </div>
         <div class="field">
-          <label for="tz">表示するタイムゾーン</label>
+          <label for="tz">Time zone to show</label>
           <select id="tz"></select>
         </div>
       </div>
       <div class="field">
-        <label for="max-age">パスワードの最大有効期間（日）</label>
+        <label for="max-age">Maximum password age in days (shows the expiry for pwdLastSet)</label>
         <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
-        <p class="hint">pwdLastSet の期限を出します。既定は 42 日。</p>
+        <p class="hint">Shows the pwdLastSet expiry. The domain default is 42 days.</p>
       </div>
       <div id="result" class="result" aria-live="polite" hidden></div>
     </section>
 
     <section class="card" aria-labelledby="h-reverse">
-      <h2 id="h-reverse">日時 → 数値</h2>
+      <h2 id="h-reverse">Date → timestamp</h2>
       <div class="field">
-        <label for="dt">日時（選んだタイムゾーン）</label>
+        <label for="dt">Date and time (in the time zone selected above)</label>
         <div class="inline-row">
           <input type="datetime-local" id="dt" step="1">
-          <button type="button" class="btn btn-sub" id="now">今</button>
+          <button type="button" class="btn btn-sub" id="now">Now</button>
         </div>
-        <p class="hint">LDAP フィルターに使う数を出します。</p>
+        <p class="hint">Gives the number for an LDAP filter or Get-ADUser -Filter.</p>
       </div>
       <div id="reverse-result" class="result" aria-live="polite"></div>
     </section>
 
     <section class="card" aria-labelledby="h-bulk">
-      <h2 id="h-bulk">まとめて変換（貼り付け）</h2>
+      <h2 id="h-bulk">Bulk convert (paste)</h2>
       <div class="field">
-        <label for="bulk">Get-ADUser・ldifde・csvde の出力</label>
+        <label for="bulk">Get-ADUser, ldifde or csvde output</label>
         <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
-        <p class="hint">日時の属性だけを拾います。送信も保存もしません。</p>
+        <p class="hint">Only timestamp attributes are picked up. Nothing is uploaded or stored.</p>
       </div>
-      <p><button type="button" class="btn" id="bulk-run">変換する</button> <button type="button" class="btn btn-sub" id="bulk-clear">消す</button></p>
+      <p><button type="button" class="btn" id="bulk-run">Convert</button> <button type="button" class="btn btn-sub" id="bulk-clear">Clear</button></p>
       <div id="bulk-result" aria-live="polite"></div>
     </section>
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
-    <p class="small"><a href="./guide.html">使い方・よくある質問</a></p>
+    <p class="small"><a href="./guide.html">Guide and FAQ</a></p>
 
   </main>
 
   <footer class="app-footer">
-    <nav class="footer-nav" aria-label="フッターナビゲーション">
+    <nav class="footer-nav" aria-label="Footer">
       <ul>
-        <li><a href="../">yorozu-craft トップ</a></li>
-        <li><a href="./" aria-current="page">FILETIME・LDAP タイムスタンプ変換</a></li>
-        <li><a href="./guide.html">使い方・よくある質問</a></li>
-        <li><a href="../about.html">運営者情報</a></li>
-        <li><a href="../privacy-policy.html">プライバシーポリシー</a></li>
+        <li><a href="../../">yorozu-craft (Japanese)</a></li>
+        <li><a href="./" aria-current="page">FILETIME &amp; LDAP Timestamp Converter</a></li>
+        <li><a href="./guide.html">Guide and FAQ</a></li>
+        <li><a href="../../en/about.html">About</a></li>
+        <li><a href="../../en/privacy-policy.html">Privacy policy</a></li>
       </ul>
     </nav>
     <p>&copy; 2026 yorozu-craft. All rights reserved.</p>
   </footer>
 
-  <script src="./calc.js"></script>
-  <script src="./main.js"></script>
+  <script src="../calc.js"></script>
+  <script src="../main.js"></script>
   <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
