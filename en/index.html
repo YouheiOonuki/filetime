@@ -52,7 +52,7 @@
 
   <header class="app-header">
     <h1>FILETIME &amp; LDAP Timestamp Converter</h1>
-    <p class="subtitle">Turn pwdLastSet, lastLogonTimestamp and accountExpires into a date, and a date back into an 18-digit value.</p>
+    <p class="subtitle">Turn 18-digit AD timestamps into dates and back. Your values never leave this browser.</p>
     <p class="lang-switch"><a href="../" hreflang="ja" lang="ja">日本語</a></p>
   </header>
 
@@ -63,7 +63,7 @@
       <div class="field">
         <label for="value">Value (18-digit number, hex, or a whole line such as "pwdLastSet : 134…")</label>
         <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. 134000000000000000">
-        <p class="hint">Commas, spaces and 0x hex are fine. Everything is calculated on this device and nothing is sent anywhere.</p>
+        <p class="hint">Commas, spaces and 0x hex are fine.</p>
       </div>
       <p class="examples">
         <span class="small">Examples:</span>
@@ -112,7 +112,7 @@
       <div class="field">
         <label for="max-age">Maximum password age in days (shows the expiry for pwdLastSet)</label>
         <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
-        <p class="hint">The default domain policy is 42 days. Leave empty or 0 to hide the expiry.</p>
+        <p class="hint">Shows the pwdLastSet expiry. The domain default is 42 days.</p>
       </div>
       <div id="result" class="result" aria-live="polite" hidden></div>
     </section>
@@ -125,7 +125,7 @@
           <input type="datetime-local" id="dt" step="1">
           <button type="button" class="btn btn-sub" id="now">Now</button>
         </div>
-        <p class="hint">Gives the number to use in an LDAP filter (lastLogonTimestamp&lt;=…) or Get-ADUser -Filter.</p>
+        <p class="hint">Gives the number for an LDAP filter or Get-ADUser -Filter.</p>
       </div>
       <div id="reverse-result" class="result" aria-live="polite"></div>
     </section>
@@ -133,9 +133,9 @@
     <section class="card" aria-labelledby="h-bulk">
       <h2 id="h-bulk">Bulk convert (paste)</h2>
       <div class="field">
-        <label for="bulk">Output of Get-ADUser -Properties *, ldifde or csvde, "name=value" lines, or a list of 18-digit numbers</label>
+        <label for="bulk">Get-ADUser, ldifde or csvde output</label>
         <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
-        <p class="hint">Only known timestamp attributes and numbers of FILETIME size are picked up; logonCount and other numbers are skipped. What you paste is processed on this device only; it is never uploaded or stored.</p>
+        <p class="hint">Only timestamp attributes are picked up. Nothing is uploaded or stored.</p>
       </div>
       <p><button type="button" class="btn" id="bulk-run">Convert</button> <button type="button" class="btn btn-sub" id="bulk-clear">Clear</button></p>
       <div id="bulk-result" aria-live="polite"></div>
@@ -143,7 +143,7 @@
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
-    <p class="small"><a href="./guide.html">Guide and FAQ (why lastLogonTimestamp lags, why accountExpires looks a day off, and more)</a></p>
+    <p class="small"><a href="./guide.html">Guide and FAQ</a></p>
 
   </main>
 

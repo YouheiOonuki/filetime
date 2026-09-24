@@ -18,6 +18,8 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 - 結果の直後に ADSearch への導線を 1 行（サイト README の 21）
 - 保存するのはタイムゾーンの選択だけ（`filetime_tz`）。ファイルへの書き出し・読み込み（サイト README の 20）は、保存しているのが表示の設定 1 つだけなので付けていない
 
+文章の量は yorozu-plans の `docs/WRITING.md`（道具）に合わせている。直したら `python3 tools/writing/measure.py --type tool index.html guide.html` と `--en en/index.html en/guide.html` で OK を確かめる。詳しい表・条文・出典の URL は使い方ページの `<details>` の中。
+
 ## 計算の仕様・根拠
 
 - 64 ビットの値はすべて BigInt で扱い、桁を落とさない。日時は秒単位を Date で組み立て、1 秒未満の 7 桁は BigInt の余りから出す（`calc.js`）

@@ -52,7 +52,7 @@
 
   <header class="app-header">
     <h1>FILETIME・LDAP タイムスタンプ変換</h1>
-    <p class="subtitle">pwdLastSet・lastLogonTimestamp・accountExpires の 18 桁を日時に。日時を 18 桁に。</p>
+    <p class="subtitle">AD の 18 桁の日時を読める形に。値は外部に送信しません。</p>
     <p class="lang-switch"><a href="./en/" hreflang="en" lang="en">English</a></p>
   </header>
 
@@ -61,9 +61,9 @@
     <section class="card" aria-labelledby="h-single">
       <h2 id="h-single">数値 → 日時</h2>
       <div class="field">
-        <label for="value">値（18 桁の数・16 進・「pwdLastSet : 134…」の行をそのまま）</label>
+        <label for="value">値（18 桁の数か「属性 : 値」の行）</label>
         <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例：134000000000000000">
-        <p class="hint">カンマ・空白入りでも、0x で始まる 16 進でも読めます。値はこの端末の中で計算し、どこにも送信しません。</p>
+        <p class="hint">カンマ入り・0x の 16 進も読みます。</p>
       </div>
       <p class="examples">
         <span class="small">例：</span>
@@ -110,9 +110,9 @@
         </div>
       </div>
       <div class="field">
-        <label for="max-age">パスワードの最大有効期間（日。pwdLastSet のとき期限を出す）</label>
+        <label for="max-age">パスワードの最大有効期間（日）</label>
         <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
-        <p class="hint">既定のドメインポリシーは 42 日。0 か空欄なら期限を出しません。</p>
+        <p class="hint">pwdLastSet の期限を出します。既定は 42 日。</p>
       </div>
       <div id="result" class="result" aria-live="polite" hidden></div>
     </section>
@@ -120,12 +120,12 @@
     <section class="card" aria-labelledby="h-reverse">
       <h2 id="h-reverse">日時 → 数値</h2>
       <div class="field">
-        <label for="dt">日時（上で選んだタイムゾーンの時刻として）</label>
+        <label for="dt">日時（選んだタイムゾーン）</label>
         <div class="inline-row">
           <input type="datetime-local" id="dt" step="1">
           <button type="button" class="btn btn-sub" id="now">今</button>
         </div>
-        <p class="hint">LDAP フィルター（lastLogonTimestamp&lt;=…）や Get-ADUser -Filter に使う数を作れます。</p>
+        <p class="hint">LDAP フィルターに使う数を出します。</p>
       </div>
       <div id="reverse-result" class="result" aria-live="polite"></div>
     </section>
@@ -133,9 +133,9 @@
     <section class="card" aria-labelledby="h-bulk">
       <h2 id="h-bulk">まとめて変換（貼り付け）</h2>
       <div class="field">
-        <label for="bulk">Get-ADUser -Properties * ・ldifde・csvde の出力、「名前=値」の行、18 桁の数の並び</label>
+        <label for="bulk">Get-ADUser・ldifde・csvde の出力</label>
         <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
-        <p class="hint">知っている属性（pwdLastSet など）と、FILETIME らしい大きさの数だけを拾い、logonCount などほかの数は飛ばします。貼り付けた内容はこの端末の中だけで処理し、送信も保存もしません。</p>
+        <p class="hint">日時の属性だけを拾います。送信も保存もしません。</p>
       </div>
       <p><button type="button" class="btn" id="bulk-run">変換する</button> <button type="button" class="btn btn-sub" id="bulk-clear">消す</button></p>
       <div id="bulk-result" aria-live="polite"></div>
@@ -143,7 +143,7 @@
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
-    <p class="small"><a href="./guide.html">使い方・よくある質問（lastLogonTimestamp のずれ、accountExpires の 1 日のずれ など）</a></p>
+    <p class="small"><a href="./guide.html">使い方・よくある質問</a></p>
 
   </main>
 
