@@ -58,6 +58,7 @@
 
   <main class="app-main">
 
+    <!-- 画面の骨組み「入力 → 結果」（yorozu-plans の docs/SCREEN.md 1.1）。値を入れる欄 → 結果（空のときは「—」）→ くわしく入れる -->
     <section class="card" aria-labelledby="h-single">
       <h2 id="h-single">数値 → 日時</h2>
       <div class="field">
@@ -104,42 +105,50 @@
             <option>lockOutObservationWindow</option>
           </select>
         </div>
+      </div>
+      <div id="result" class="result" aria-live="polite"><p class="empty">—</p></div>
+    </section>
+
+    <!-- くわしく入れる（SCREEN.md 1.1 の 4）: タイムゾーン・パスワードの最大有効期間、日時 → 数値、まとめて変換。summary に今の状態（main.js の updateSummaries） -->
+    <div class="opts">
+      <details class="card opt" id="opt-tz">
+        <summary>表示するタイムゾーン: <span class="opt-state"></span></summary>
         <div class="field">
           <label for="tz">表示するタイムゾーン</label>
           <select id="tz"></select>
         </div>
-      </div>
-      <div class="field">
-        <label for="max-age">パスワードの最大有効期間（日）</label>
-        <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
-        <p class="hint">pwdLastSet の期限を出します。既定は 42 日。</p>
-      </div>
-      <div id="result" class="result" aria-live="polite" hidden></div>
-    </section>
-
-    <section class="card" aria-labelledby="h-reverse">
-      <h2 id="h-reverse">日時 → 数値</h2>
-      <div class="field">
-        <label for="dt">日時（選んだタイムゾーン）</label>
-        <div class="inline-row">
-          <input type="datetime-local" id="dt" step="1">
-          <button type="button" class="btn btn-sub" id="now">今</button>
+      </details>
+      <details class="card opt" id="opt-age">
+        <summary>パスワードの最大有効期間（日）: <span class="opt-state"></span></summary>
+        <div class="field">
+          <label for="max-age">パスワードの最大有効期間（日）</label>
+          <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
+          <p class="hint">pwdLastSet の期限を出します。既定は 42 日。</p>
         </div>
-        <p class="hint">LDAP フィルターに使う数を出します。</p>
-      </div>
-      <div id="reverse-result" class="result" aria-live="polite"></div>
-    </section>
-
-    <section class="card" aria-labelledby="h-bulk">
-      <h2 id="h-bulk">まとめて変換（貼り付け）</h2>
-      <div class="field">
-        <label for="bulk">Get-ADUser・ldifde・csvde の出力</label>
-        <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
-        <p class="hint">日時の属性だけを拾います。送信も保存もしません。</p>
-      </div>
-      <p><button type="button" class="btn" id="bulk-run">変換する</button> <button type="button" class="btn btn-sub" id="bulk-clear">消す</button></p>
-      <div id="bulk-result" aria-live="polite"></div>
-    </section>
+      </details>
+      <details class="card opt" id="opt-reverse">
+        <summary id="h-reverse">日時 → 数値</summary>
+        <div class="field">
+          <label for="dt">日時（選んだタイムゾーン）</label>
+          <div class="inline-row">
+            <input type="datetime-local" id="dt" step="1">
+            <button type="button" class="btn btn-sub" id="now">今</button>
+          </div>
+          <p class="hint">LDAP フィルターに使う数を出します。</p>
+        </div>
+        <div id="reverse-result" class="result" aria-live="polite"></div>
+      </details>
+      <details class="card opt" id="opt-bulk">
+        <summary id="h-bulk">まとめて変換（貼り付け）</summary>
+        <div class="field">
+          <label for="bulk">Get-ADUser・ldifde・csvde の出力</label>
+          <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
+          <p class="hint">日時の属性だけを拾います。送信も保存もしません。</p>
+        </div>
+        <p><button type="button" class="btn" id="bulk-run">変換する</button> <button type="button" class="btn btn-sub" id="bulk-clear">消す</button></p>
+        <div id="bulk-result" aria-live="polite"></div>
+      </details>
+    </div>
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
@@ -161,6 +170,7 @@
   </footer>
 
   <script src="./calc.js"></script>
+  <script src="./screen.js"></script>
   <script src="./main.js"></script>
   <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

@@ -197,3 +197,30 @@ a { color: var(--accent); }
 @media (max-width: 480px) {
   .app-header h1 { font-size: 1.2rem; }
 }
+
+/* ===========================
+   画面の骨組み（yorozu-plans の docs/SCREEN.md 1.1。yorozu-template の style.css の部品）
+   値を入れる欄 → 結果（空のときは「—」）→ くわしく入れる（details.opt）、印刷で広告を消す
+   =========================== */
+.result .empty { color: var(--muted); margin: 0; }
+details.card.opt { padding: 0 1.2rem; margin-bottom: 0.6rem; }
+details.card.opt > summary {
+  cursor: pointer; display: block; min-height: 44px; padding: 0.6rem 0;
+  color: var(--accent); font-weight: 600; font-size: 0.95rem; list-style: none;
+}
+details.card.opt > summary::-webkit-details-marker { display: none; }
+details.card.opt > summary::before { content: '▸'; margin-right: 0.4rem; }
+details.card.opt[open] > summary::before { content: '▾'; }
+details.card.opt[open] { padding-bottom: 0.9rem; }
+details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 0.9rem; }
+details.card.opt > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt-state { color: var(--text); font-weight: normal; overflow-wrap: anywhere; }
+.opts { margin-bottom: 1rem; }
+
+@media print {
+  /* 印刷では折りたたみの中も出す */
+  main details::details-content { content-visibility: visible; display: block; }
+  main details > summary::before { content: none; }
+  /* 広告は印刷に出さない（gakushu-print と同じ） */
+  ins.adsbygoogle, .google-auto-placed, iframe[id^="aswift"], iframe[id^="google_ads"] { display: none !important; }
+}
