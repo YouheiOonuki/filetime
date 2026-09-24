@@ -58,6 +58,7 @@
 
   <main class="app-main">
 
+    <!-- 画面の骨組み「入力 → 結果」（yorozu-plans の docs/SCREEN.md 1.1）。値を入れる欄 → 結果（空のときは「—」）→ くわしく入れる -->
     <section class="card" aria-labelledby="h-single">
       <h2 id="h-single">Timestamp → date</h2>
       <div class="field">
@@ -104,42 +105,50 @@
             <option>lockOutObservationWindow</option>
           </select>
         </div>
+      </div>
+      <div id="result" class="result" aria-live="polite"><p class="empty">—</p></div>
+    </section>
+
+    <!-- くわしく入れる（SCREEN.md 1.1 の 4）: タイムゾーン・パスワードの最大有効期間、日時 → 数値、まとめて変換。summary に今の状態（main.js の updateSummaries） -->
+    <div class="opts">
+      <details class="card opt" id="opt-tz">
+        <summary>Time zone to show: <span class="opt-state"></span></summary>
         <div class="field">
           <label for="tz">Time zone to show</label>
           <select id="tz"></select>
         </div>
-      </div>
-      <div class="field">
-        <label for="max-age">Maximum password age in days (shows the expiry for pwdLastSet)</label>
-        <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
-        <p class="hint">Shows the pwdLastSet expiry. The domain default is 42 days.</p>
-      </div>
-      <div id="result" class="result" aria-live="polite" hidden></div>
-    </section>
-
-    <section class="card" aria-labelledby="h-reverse">
-      <h2 id="h-reverse">Date → timestamp</h2>
-      <div class="field">
-        <label for="dt">Date and time (in the time zone selected above)</label>
-        <div class="inline-row">
-          <input type="datetime-local" id="dt" step="1">
-          <button type="button" class="btn btn-sub" id="now">Now</button>
+      </details>
+      <details class="card opt" id="opt-age">
+        <summary>Maximum password age in days: <span class="opt-state"></span></summary>
+        <div class="field">
+          <label for="max-age">Maximum password age in days (shows the expiry for pwdLastSet)</label>
+          <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
+          <p class="hint">Shows the pwdLastSet expiry. The domain default is 42 days.</p>
         </div>
-        <p class="hint">Gives the number for an LDAP filter or Get-ADUser -Filter.</p>
-      </div>
-      <div id="reverse-result" class="result" aria-live="polite"></div>
-    </section>
-
-    <section class="card" aria-labelledby="h-bulk">
-      <h2 id="h-bulk">Bulk convert (paste)</h2>
-      <div class="field">
-        <label for="bulk">Get-ADUser, ldifde or csvde output</label>
-        <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
-        <p class="hint">Only timestamp attributes are picked up. Nothing is uploaded or stored.</p>
-      </div>
-      <p><button type="button" class="btn" id="bulk-run">Convert</button> <button type="button" class="btn btn-sub" id="bulk-clear">Clear</button></p>
-      <div id="bulk-result" aria-live="polite"></div>
-    </section>
+      </details>
+      <details class="card opt" id="opt-reverse">
+        <summary id="h-reverse">Date → timestamp</summary>
+        <div class="field">
+          <label for="dt">Date and time (in the time zone selected above)</label>
+          <div class="inline-row">
+            <input type="datetime-local" id="dt" step="1">
+            <button type="button" class="btn btn-sub" id="now">Now</button>
+          </div>
+          <p class="hint">Gives the number for an LDAP filter or Get-ADUser -Filter.</p>
+        </div>
+        <div id="reverse-result" class="result" aria-live="polite"></div>
+      </details>
+      <details class="card opt" id="opt-bulk">
+        <summary id="h-bulk">Bulk convert (paste)</summary>
+        <div class="field">
+          <label for="bulk">Get-ADUser, ldifde or csvde output</label>
+          <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
+          <p class="hint">Only timestamp attributes are picked up. Nothing is uploaded or stored.</p>
+        </div>
+        <p><button type="button" class="btn" id="bulk-run">Convert</button> <button type="button" class="btn btn-sub" id="bulk-clear">Clear</button></p>
+        <div id="bulk-result" aria-live="polite"></div>
+      </details>
+    </div>
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
@@ -161,6 +170,7 @@
   </footer>
 
   <script src="../calc.js"></script>
+  <script src="../screen.js"></script>
   <script src="../main.js"></script>
   <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

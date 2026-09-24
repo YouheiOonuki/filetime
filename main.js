@@ -149,7 +149,13 @@
     if (!C.isValidZone(tzSel.value)) return;
     tz = tzSel.value; store.set('tz', tz);
     renderSingle(); renderReverse(); if (lastBulk) renderBulk();
+    updateSummaries();
   });
+
+  // 「くわしく入れる」の summary に今の状態（screen.js の detailsSummary。SCREEN.md 1.1 の 4）
+  function updateSummaries() {
+    window.YorozuScreen.detailsSummary({ 'opt-tz': tz, 'opt-age': el.maxAge.value });
+  }
 
   function zoneText(ticks, zone) {
     var z = C.formatInZone(ticks, zone);
@@ -175,7 +181,8 @@
 
   function renderSingle() {
     var text = el.input.value;
-    if (!text.trim()) { el.out.hidden = true; el.out.innerHTML = ''; return; }
+    // 空のときは「—」（SCREEN.md 3 章。結果の場所は読み込み時から見せておく）
+    if (!text.trim()) { el.out.innerHTML = '<p class="empty">—</p>'; return; }
     var p = C.parseSingle(text, el.mode.value, tz);
     var attr = el.attr.value || p.attr || '';
     if (!p.ok) { el.out.hidden = false; el.out.innerHTML = '<p class="error">' + esc(T.err[p.error] || T.err.number) + '</p>'; return; }
@@ -328,6 +335,7 @@
   el.mode.addEventListener('change', renderSingle);
   el.attr.addEventListener('change', renderSingle);
   el.maxAge.addEventListener('input', renderSingle);
+  el.maxAge.addEventListener('input', updateSummaries);
   el.rin.addEventListener('input', renderReverse);
   $('now').addEventListener('click', function () {
     var z = C.formatInZone(C.unixMsToTicks(Math.floor(Date.now() / 1000) * 1000), tz);
@@ -361,4 +369,5 @@
   }
   renderSingle();
   renderReverse();
+  updateSummaries();
 })();

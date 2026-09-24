@@ -46,6 +46,7 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 | `calc.js` | 変換・読み取り・まとめて変換・共有リンク（純粋関数。日英共通） |
 | `constants.js` | 出典（Microsoft の文書と確認日） |
 | `main.js` | 画面の制御。日英の文言（`STR`）を `<html lang>` で切り替える |
+| `screen.js` | 画面の部品（折りたたみの状態表示。yorozu-template と同じ） |
 | `style.css` | 見た目（和紙風の配色、ダークモード対応） |
 | `404.html` | ツール配下の存在しない URL で出るページ（サイト共通のもの） |
 | `favicon.svg` / `apple-touch-icon.png` / `og-image.png` | アイコン / ホーム画面用アイコン / SNS 共有用画像（1200×630） |
