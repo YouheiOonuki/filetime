@@ -125,6 +125,72 @@ a { color: var(--accent); }
 .footer-nav a { color: var(--muted); text-decoration: none; }
 .footer-nav a:hover, .footer-nav a[aria-current="page"] { color: var(--accent); }
 
+/* ===== FILETIME 変換の部品 ===== */
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, "Noto Sans Mono", monospace; }
+.field input.wide, .field textarea { width: 100%; max-width: none; }
+.field textarea {
+  padding: 0.5rem; font-size: 0.88rem; line-height: 1.5; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--card); color: var(--text); resize: vertical;
+}
+.field input[type="datetime-local"] {
+  padding: 0.4rem 0.5rem; font-size: 1rem; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--card); color: var(--text); max-width: 100%;
+}
+.field-row { display: flex; flex-wrap: wrap; gap: 0 1rem; }
+.field-row .field { flex: 1 1 12rem; min-width: 0; }
+.field-row .field select { max-width: 100%; }
+.inline-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.examples { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin: -0.3rem 0 0.9rem; }
+.examples .small { margin: 0; }
+.chip {
+  border: 1px solid var(--border); background: var(--accent-soft); color: var(--text);
+  border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.8rem; cursor: pointer;
+}
+.chip:hover, .chip:focus-visible { border-color: var(--accent); }
+.btn-sub { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); }
+.result { border-top: 1px dashed var(--border); padding-top: 0.8rem; margin-top: 0.4rem; }
+.result .read { margin: 0 0 0.5rem; }
+.error { color: #b3261e; font-weight: 600; font-size: 0.9rem; }
+@media (prefers-color-scheme: dark) { .error { color: #ff8a80; } }
+.notes { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 4px; padding: 0.6rem 0.8rem; margin-bottom: 0.8rem; }
+.notes p { font-size: 0.88rem; }
+.notes p + p { margin-top: 0.4rem; }
+.result-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.result-table th, .result-table td { text-align: left; vertical-align: top; padding: 0.35rem 0.4rem; border-bottom: 1px solid var(--border); }
+.result-table th { font-weight: 600; color: var(--muted); width: 38%; }
+.result-table td .v { font-family: ui-monospace, "Cascadia Mono", Consolas, "Noto Sans Mono", monospace; overflow-wrap: anywhere; }
+.copy {
+  margin-left: 0.3rem; font-size: 0.72rem; padding: 0.05rem 0.45rem; border-radius: 4px;
+  border: 1px solid var(--border); background: transparent; color: var(--accent); cursor: pointer; vertical-align: 1px;
+}
+@media (max-width: 480px) {
+  .result-table th, .result-table td { display: block; width: auto; border-bottom: none; padding: 0.15rem 0.2rem; }
+  .result-table td { border-bottom: 1px solid var(--border); padding-bottom: 0.45rem; }
+}
+.snippets { margin-top: 0.8rem; font-size: 0.85rem; }
+.snippets summary { cursor: pointer; color: var(--accent); }
+.snippets pre, .content pre {
+  margin-top: 0.4rem; padding: 0.6rem; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;
+  font-size: 0.8rem; overflow-x: auto; white-space: pre; font-family: ui-monospace, "Cascadia Mono", Consolas, "Noto Sans Mono", monospace;
+}
+.actions { margin-top: 0.8rem; }
+.next { margin-top: 0.7rem; font-size: 0.88rem; }
+.msg { min-height: 1.2em; text-align: center; }
+.table-wrap { overflow-x: auto; margin-top: 0.5rem; }
+.bulk-table { border-collapse: collapse; font-size: 0.78rem; min-width: 100%; }
+.bulk-table th, .bulk-table td { border: 1px solid var(--border); padding: 0.25rem 0.4rem; text-align: left; vertical-align: top; }
+.bulk-table th { background: var(--bg-2); white-space: nowrap; }
+.bulk-table td:nth-child(4), .bulk-table td:nth-child(5) { white-space: nowrap; }
+.bulk-table td:last-child { min-width: 16em; }
+.bulk-table td.num { font-family: ui-monospace, "Cascadia Mono", Consolas, "Noto Sans Mono", monospace; white-space: nowrap; }
+.lang-switch { font-size: 0.82rem; margin-top: 0.35rem; }
+.content code { font-family: ui-monospace, "Cascadia Mono", Consolas, "Noto Sans Mono", monospace; font-size: 0.85em; overflow-wrap: anywhere; }
+.content table { border-collapse: collapse; font-size: 0.84rem; margin: 0.4rem 0; width: 100%; }
+.content th, .content td { border: 1px solid var(--border); padding: 0.3rem 0.4rem; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.content th { background: var(--bg-2); }
+.content h2 + p, .content h3 + p { margin-top: 0.2rem; }
+.sources li { overflow-wrap: anywhere; }
+
 @media (max-width: 480px) {
   .app-header h1 { font-size: 1.2rem; }
 }

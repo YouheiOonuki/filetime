@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>使い方・よくある質問｜FILETIME・LDAP タイムスタンプ変換｜yorozu-craft</title>
-  <meta name="description" content="FILETIME・LDAP タイムスタンプ変換の使い方、計算の根拠、よくある質問、ご利用上の注意。">
+  <title>pwdLastSet・lastLogonTimestamp の読み方と変換のしかた（使い方・よくある質問）｜FILETIME・LDAP タイムスタンプ変換｜yorozu-craft</title>
+  <meta name="description" content="AD の pwdLastSet・lastLogonTimestamp・accountExpires の 18 桁の数値の意味と変換方法。lastLogonTimestamp が最大 14 日ずれる理由、accountExpires の 0 と 9223372036854775807、ADUC で 1 日ずれる理由、負の maxPwdAge を Microsoft の文書に沿って説明します。">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://yorozu-craft.com/filetime/guide.html">
+  <link rel="alternate" hreflang="ja" href="https://yorozu-craft.com/filetime/guide.html">
+  <link rel="alternate" hreflang="en" href="https://yorozu-craft.com/filetime/en/guide.html">
+  <link rel="alternate" hreflang="x-default" href="https://yorozu-craft.com/filetime/guide.html">
 
-  <meta property="og:title" content="使い方・よくある質問｜FILETIME・LDAP タイムスタンプ変換">
-  <meta property="og:description" content="FILETIME・LDAP タイムスタンプ変換の使い方、計算の根拠、よくある質問、ご利用上の注意。">
+  <meta property="og:title" content="pwdLastSet・lastLogonTimestamp の読み方と変換のしかた｜FILETIME・LDAP タイムスタンプ変換">
+  <meta property="og:description" content="18 桁の数値の意味、特別な値（0・無期限・負の値）、lastLogonTimestamp のずれを Microsoft の文書に沿って説明。">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://yorozu-craft.com/filetime/guide.html">
   <meta property="og:site_name" content="yorozu-craft">
   <meta property="og:locale" content="ja_JP">
+  <meta property="og:locale:alternate" content="en_US">
   <meta property="og:image" content="https://yorozu-craft.com/filetime/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -25,16 +29,28 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "無料で使えますか？",
-        "acceptedAnswer": { "@type": "Answer", "text": "はい。会員登録やインストールも不要で、ブラウザだけで使えます。" }
-      },
-      {
-        "@type": "Question",
-        "name": "入力した内容はどこに保存されますか？",
-        "acceptedAnswer": { "@type": "Answer", "text": "お使いのブラウザの中にだけ保存され、外部のサーバーには送信されません。" }
-      }
+      { "@type": "Question", "name": "pwdLastSet や lastLogonTimestamp の 18 桁の数値は何ですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "Windows の FILETIME で、1601 年 1 月 1 日 0 時（UTC）からの経過時間を 100 ナノ秒単位で数えた数です。1 秒は 10,000,000。PowerShell なら [datetime]::FromFileTimeUtc(値)、コマンドプロンプトなら w32tm /ntte 値 で日時に直せます。" } },
+      { "@type": "Question", "name": "lastLogonTimestamp が実際の最終ログオンと合わないのはなぜですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "lastLogonTimestamp は、ログオンのたびではなく、前の値が「今 − msDS-LogonTimeSyncInterval（既定 14 日）」より古いときだけ書き換わります。そのため既定では 9〜14 日ほど遅れることがあります。休眠アカウントの洗い出し用の値で、正確な最終ログオンが必要なら全 DC の lastLogon の最大を見ます。" } },
+      { "@type": "Question", "name": "lastLogon と lastLogonTimestamp の違いは？",
+        "acceptedAnswer": { "@type": "Answer", "text": "lastLogon はログオンのたびに更新されますが、その DC にだけ記録され複製されません。lastLogonTimestamp は全 DC に複製されますが、更新が最大 14 日ほど遅れます。" } },
+      { "@type": "Question", "name": "accountExpires が 9223372036854775807 や 0 なのはどういう意味ですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "どちらも「無期限」です。9223372036854775807（0x7FFFFFFFFFFFFFFF）はアカウント作成時の既定値で、一度期限を設定してから「無期限」に戻すと 0 になります。" } },
+      { "@type": "Question", "name": "ADUC の「アカウントの期限」と accountExpires が 1 日ずれるのはなぜですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "ADUC は「その日の終わり」で期限を表示します。accountExpires に入っているのは期限切れになる瞬間（翌日の 0 時）なので、ADUC の表示は accountExpires の日付より 1 日前になります。" } },
+      { "@type": "Question", "name": "pwdLastSet が 0 のときは？",
+        "acceptedAnswer": { "@type": "Answer", "text": "「次回ログオン時にパスワードの変更が必要」です（「パスワードを無期限にする」が設定されていない場合）。" } },
+      { "@type": "Question", "name": "maxPwdAge や lockoutDuration がマイナスの値なのはなぜですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "日時ではなく期間で、100 ナノ秒単位の負の数で持つ決まりです。例えば -36288000000000 は 42 日、-18000000000 は 30 分です。パスワードの期限は pwdLastSet に maxPwdAge の絶対値を足した日時です。" } },
+      { "@type": "Question", "name": "パスワードの有効期限を直接知る方法は？",
+        "acceptedAnswer": { "@type": "Answer", "text": "msDS-UserPasswordExpiryTimeComputed を読みます（Get-ADUser ユーザー名 -Properties msDS-UserPasswordExpiryTimeComputed）。細かいパスワードポリシー（PSO）も反映された値です。9223372036854775807 なら期限切れにならず、0 なら pwdLastSet が 0 です。" } },
+      { "@type": "Question", "name": "変換した時刻が 9 時間ずれるのはなぜですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "FILETIME は UTC（協定世界時）で入っています。日本時間は UTC より 9 時間進んでいるので、日本時間で見るときは 9 時間足します。このツールは UTC・この端末の時刻・選んだタイムゾーンを並べて表示します。" } },
+      { "@type": "Question", "name": "Excel で変換するには？",
+        "acceptedAnswer": { "@type": "Answer", "text": "値が A1 にあるとき、=A1/864000000000-109205 で UTC の日時（シリアル値）になります。日本時間なら =A1/864000000000-109205+9/24。セルの表示形式を日付と時刻にしてください。Excel の数値は 15 桁までなので、1 秒未満は正確ではありません。" } },
+      { "@type": "Question", "name": "入力した値はどこかに送信されますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "送信しません。計算はすべてお使いのブラウザの中で行います。保存するのは「表示するタイムゾーン」の選択だけです。" } }
     ]
   }
   </script>
@@ -51,40 +67,105 @@
 <body>
 
   <header class="app-header">
-    <h1>FILETIME・LDAP タイムスタンプ変換 の使い方</h1>
-    <p class="subtitle">使い方・計算の根拠・よくある質問・ご利用上の注意</p>
+    <h1>FILETIME・LDAP タイムスタンプ変換の使い方</h1>
+    <p class="subtitle">18 桁の数値の読み方・特別な値・よくある質問・根拠</p>
+    <p class="lang-switch"><a href="./en/guide.html" hreflang="en" lang="en">English</a></p>
   </header>
 
   <main class="app-main">
 
-    <p class="card" style="text-align:center"><a href="./">▶ FILETIME・LDAP タイムスタンプ変換 を使う</a></p>
+    <p class="card" style="text-align:center"><a href="./">▶ FILETIME・LDAP タイムスタンプ変換を使う</a></p>
 
     <article class="card content" id="howto">
       <h2>使い方</h2>
       <ol>
-        <li>（手順を書く）</li>
+        <li><strong>数値 → 日時</strong>: 18 桁の数を入れると、UTC・この端末の時刻・選んだタイムゾーンで表示します。<code>pwdLastSet : 134347122000000000</code> のように行ごと貼れば、属性名から意味（0 や無期限など）も出します。</li>
+        <li><strong>日時 → 数値</strong>: 日時を選ぶと、FILETIME（10 進・16 進）、Unix 秒、.NET の Ticks、一般化時刻と、LDAP フィルターの例を出します。</li>
+        <li><strong>まとめて変換</strong>: <code>Get-ADUser ユーザー名 -Properties *</code> の出力や、ldifde・csvde のファイルの中身を貼って「変換する」。日時の属性だけを拾って表にします。「表をコピー（TSV）」で Excel に貼れます。</li>
+        <li>結果の「この値を開くリンクをコピー」で、同じ値を開くリンクを作れます（値はリンクの <code>#</code> 以降に入り、サーバーには送られません）。</li>
       </ol>
     </article>
 
-    <!-- 制度・単価など時点のある値を使うツールだけ残す。値は constants.js、画面にも時点を出す -->
-    <article class="card content" id="basis">
-      <h2>根拠と確認日</h2>
-      <dl class="info-list">
-        <dt>根拠</dt>
-        <dd>（法令・公式ページの名前）</dd>
-        <dt>最終確認日</dt>
-        <dd><time datetime="2026-09-24">2026年9月24日</time></dd>
-      </dl>
-      <p class="small">制度や単価は変わることがあります。最終確認日から時間がたっている場合は、公式ページで最新の情報をご確認ください。</p>
+    <article class="card content" id="formats">
+      <h2>読める形式</h2>
+      <table>
+        <thead><tr><th>形式</th><th>例</th><th>中身</th></tr></thead>
+        <tbody>
+          <tr><td>FILETIME（LDAP の Integer8）</td><td><code>134347122000000000</code></td><td>1601-01-01 00:00 UTC からの 100 ナノ秒の数。pwdLastSet・lastLogon・lastLogonTimestamp・accountExpires・badPasswordTime・lockoutTime など</td></tr>
+          <tr><td>16 進</td><td><code>0x01DD2D4D7C4C8000</code></td><td>64 ビットの値。最上位ビットが立つ値は負（2 の補数）として読みます</td></tr>
+          <tr><td>期間（負の値）</td><td><code>-36288000000000</code></td><td>maxPwdAge・minPwdAge・lockoutDuration・lockOutObservationWindow。100 ナノ秒の数の負の値（この例は 42 日）</td></tr>
+          <tr><td>一般化時刻</td><td><code>20260924083000.0Z</code></td><td>whenCreated・whenChanged など。末尾 Z は UTC</td></tr>
+          <tr><td>Unix 秒・ミリ秒</td><td><code>1758702600</code></td><td>1970-01-01 UTC からの秒（10 桁）・ミリ秒（13 桁）</td></tr>
+          <tr><td>.NET DateTime.Ticks</td><td><code>639000000000000000</code></td><td>0001-01-01 からの 100 ナノ秒の数。FILETIME との差は 504911232000000000</td></tr>
+        </tbody>
+      </table>
+      <p>「自動」は、10〜11 桁を Unix 秒、12〜14 桁を Unix ミリ秒、それより長い数と 0・負の値を FILETIME として読みます。.NET の Ticks らしい数（FILETIME だと 2200 年より後になる数）には、別の読み方を添えます。</p>
+    </article>
+
+    <article class="card content" id="special">
+      <h2>特別な値</h2>
+      <table>
+        <thead><tr><th>属性</th><th>値</th><th>意味</th></tr></thead>
+        <tbody>
+          <tr><td>accountExpires</td><td><code>9223372036854775807</code><br>（0x7FFFFFFFFFFFFFFF）</td><td>無期限。アカウント作成時の既定値</td></tr>
+          <tr><td>accountExpires</td><td><code>0</code></td><td>無期限。一度期限を設定してから「無期限」に戻したとき</td></tr>
+          <tr><td>pwdLastSet</td><td><code>0</code></td><td>次回ログオン時にパスワードの変更が必要（「パスワードを無期限にする」が無いとき）</td></tr>
+          <tr><td>pwdLastSet</td><td><code>-1</code>（書き込み時）</td><td>「次回ログオン時の変更は不要」にする</td></tr>
+          <tr><td>lastLogon・lastLogonTimestamp</td><td><code>0</code></td><td>記録なし（ログオンしたことがない、またはこの DC に記録がない）</td></tr>
+          <tr><td>lockoutTime</td><td><code>0</code></td><td>ロックアウトされていない</td></tr>
+          <tr><td>msDS-UserPasswordExpiryTimeComputed</td><td><code>9223372036854775807</code></td><td>パスワードは期限切れにならない（「パスワードを無期限にする」・スマートカード必須・コンピューター／信頼アカウント、またはドメインの最大有効期間が無期限）</td></tr>
+          <tr><td>msDS-UserPasswordExpiryTimeComputed</td><td><code>0</code></td><td>pwdLastSet が 0 か未設定</td></tr>
+          <tr><td>maxPwdAge</td><td><code>-9223372036854775808</code><br>（0x8000000000000000）</td><td>最大有効期間が無期限</td></tr>
+        </tbody>
+      </table>
     </article>
 
     <article class="card content" id="faq">
       <h2>よくある質問</h2>
       <dl class="faq">
-        <dt>無料で使えますか？</dt>
-        <dd>はい。会員登録やインストールも不要で、ブラウザだけで使えます。</dd>
-        <dt>入力した内容はどこに保存されますか？</dt>
-        <dd>お使いのブラウザの中にだけ保存され、外部のサーバーには送信されません。</dd>
+        <dt>pwdLastSet や lastLogonTimestamp の 18 桁の数値は何ですか？</dt>
+        <dd>Windows の FILETIME で、1601 年 1 月 1 日 0 時（UTC）からの経過時間を 100 ナノ秒単位で数えた数です。1 秒は 10,000,000。PowerShell なら <code>[datetime]::FromFileTimeUtc(値)</code>、コマンドプロンプトなら <code>w32tm /ntte 値</code> で日時に直せます（<a href="https://learn.microsoft.com/troubleshoot/windows-server/active-directory/convert-datetime-attributes-to-standard-format" target="_blank" rel="noopener">Microsoft Learn</a>）。</dd>
+        <dt>lastLogonTimestamp が実際の最終ログオンと合わないのはなぜですか？</dt>
+        <dd>lastLogonTimestamp は、ログオンのたびではなく、前の値が「今 − msDS-LogonTimeSyncInterval（既定 14 日）」より古いときだけ書き換わります。そのため既定では 9〜14 日ほど遅れることがあります（<a href="https://learn.microsoft.com/windows/win32/adschema/a-lastlogontimestamp" target="_blank" rel="noopener">Last-Logon-Timestamp</a>、<a href="https://learn.microsoft.com/troubleshoot/mem/configmgr/discovery/lastlogontimestamp-not-accurate" target="_blank" rel="noopener">KB 2679653</a>）。休眠アカウントの洗い出し用の値で、正確な最終ログオンが必要なら全 DC の lastLogon の最大を見ます。</dd>
+        <dt>lastLogon と lastLogonTimestamp の違いは？</dt>
+        <dd>lastLogon はログオンのたびに更新されますが、その DC にだけ記録され複製されません（<a href="https://learn.microsoft.com/windows/win32/adschema/a-lastlogon" target="_blank" rel="noopener">Last-Logon</a>）。lastLogonTimestamp は全 DC に複製されますが、更新が最大 14 日ほど遅れます。</dd>
+        <dt>accountExpires が 9223372036854775807 や 0 なのはどういう意味ですか？</dt>
+        <dd>どちらも「無期限」です。9223372036854775807（0x7FFFFFFFFFFFFFFF）はアカウント作成時の既定値で、一度期限を設定してから「無期限」に戻すと 0 になります（<a href="https://learn.microsoft.com/windows/win32/adschema/a-accountexpires" target="_blank" rel="noopener">Account-Expires</a>）。LDAP で期限切れのアカウントを探すときは、0 と 9223372036854775807 を除きます。</dd>
+        <dt>ADUC の「アカウントの期限」と accountExpires が 1 日ずれるのはなぜですか？</dt>
+        <dd>ADUC は「その日の終わり」で期限を表示します。accountExpires に入っているのは期限切れになる瞬間（翌日の 0 時）なので、ADUC の表示は accountExpires の日付より 1 日前になります（<a href="https://learn.microsoft.com/windows/win32/adsi/account-expiration" target="_blank" rel="noopener">Account Expiration</a>）。</dd>
+        <dt>pwdLastSet が 0 のときは？</dt>
+        <dd>「次回ログオン時にパスワードの変更が必要」です（「パスワードを無期限にする」が設定されていない場合。<a href="https://learn.microsoft.com/windows/win32/adschema/a-pwdlastset" target="_blank" rel="noopener">Pwd-Last-Set</a>）。</dd>
+        <dt>maxPwdAge や lockoutDuration がマイナスの値なのはなぜですか？</dt>
+        <dd>日時ではなく期間で、100 ナノ秒単位の負の数で持つ決まりです（<a href="https://learn.microsoft.com/windows/win32/adschema/a-lockoutduration" target="_blank" rel="noopener">Lockout-Duration</a>、[MS-SAMR] の <a href="https://learn.microsoft.com/openspecs/windows_protocols/ms-samr/7b2aeb27-92fc-41f6-8437-deb65d950921" target="_blank" rel="noopener">delta time</a>）。例えば -36288000000000 は 42 日、-18000000000 は 30 分です。パスワードの期限は pwdLastSet に maxPwdAge の絶対値を足した日時です。</dd>
+        <dt>パスワードの有効期限を直接知る方法は？</dt>
+        <dd>msDS-UserPasswordExpiryTimeComputed を読みます（<code>Get-ADUser ユーザー名 -Properties msDS-UserPasswordExpiryTimeComputed</code>）。細かいパスワードポリシー（PSO）も反映された値です。9223372036854775807 なら期限切れにならず、0 なら pwdLastSet が 0 です（<a href="https://learn.microsoft.com/openspecs/windows_protocols/ms-adts/f9e9b7e2-c7ac-4db6-ba38-71d9696981e9" target="_blank" rel="noopener">[MS-ADTS] 3.1.1.4.5.33</a>）。</dd>
+        <dt>変換した時刻が 9 時間ずれるのはなぜですか？</dt>
+        <dd>FILETIME は UTC（協定世界時）で入っています。日本時間は UTC より 9 時間進んでいるので、日本時間で見るときは 9 時間足します。このツールは UTC・この端末の時刻・選んだタイムゾーンを並べて表示します。</dd>
+        <dt>Excel で変換するには？</dt>
+        <dd>値が A1 にあるとき、<code>=A1/864000000000-109205</code> で UTC の日時（シリアル値）になります。日本時間なら <code>=A1/864000000000-109205+9/24</code>。セルの表示形式を日付と時刻にしてください。Excel の数値は 15 桁までなので、1 秒未満は正確ではありません。</dd>
+        <dt>入力した値はどこかに送信されますか？</dt>
+        <dd>送信しません。計算はすべてお使いのブラウザの中で行います。保存するのは「表示するタイムゾーン」の選択だけです。</dd>
+      </dl>
+    </article>
+
+    <article class="card content" id="basis">
+      <h2>根拠と確認日</h2>
+      <p>変換の式（1601-01-01 UTC から 100 ナノ秒単位）は変わりません。属性ごとの意味と既定値は、次の Microsoft の文書で確かめました。</p>
+      <ul class="sources">
+        <li><a href="https://learn.microsoft.com/windows/win32/sysinfo/file-times" target="_blank" rel="noopener">File Times</a>（FILETIME の定義）</li>
+        <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-pwdlastset" target="_blank" rel="noopener">Pwd-Last-Set</a>・<a href="https://learn.microsoft.com/windows/win32/ad/security-properties" target="_blank" rel="noopener">User Security Attributes</a>（pwdLastSet の 0 と -1）</li>
+        <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-accountexpires" target="_blank" rel="noopener">Account-Expires</a>・<a href="https://learn.microsoft.com/windows/win32/adsi/account-expiration" target="_blank" rel="noopener">Account Expiration (LDAP Provider)</a>（無期限の値、ADUC の 1 日前表示）</li>
+        <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-lastlogontimestamp" target="_blank" rel="noopener">Last-Logon-Timestamp</a>・<a href="https://learn.microsoft.com/troubleshoot/mem/configmgr/discovery/lastlogontimestamp-not-accurate" target="_blank" rel="noopener">KB 2679653</a>・<a href="https://learn.microsoft.com/windows/win32/adschema/a-lastlogon" target="_blank" rel="noopener">Last-Logon</a>・<a href="https://learn.microsoft.com/windows/win32/adschema/a-lockouttime" target="_blank" rel="noopener">Lockout-Time</a></li>
+        <li><a href="https://learn.microsoft.com/windows/win32/adschema/a-lockoutduration" target="_blank" rel="noopener">Lockout-Duration</a>・[MS-SAMR] <a href="https://learn.microsoft.com/openspecs/windows_protocols/ms-samr/7b2aeb27-92fc-41f6-8437-deb65d950921" target="_blank" rel="noopener">1.1 Glossary（delta time）</a>（負の期間）</li>
+        <li>[MS-ADTS] <a href="https://learn.microsoft.com/openspecs/windows_protocols/ms-adts/f9e9b7e2-c7ac-4db6-ba38-71d9696981e9" target="_blank" rel="noopener">3.1.1.4.5.33 msDS-UserPasswordExpiryTimeComputed</a></li>
+        <li><a href="https://learn.microsoft.com/windows/client-management/mdm/policy-csp-devicelock#maximumpasswordage" target="_blank" rel="noopener">Policy CSP - DeviceLock: MaximumPasswordAge</a>（既定 42 日）</li>
+        <li><a href="https://learn.microsoft.com/windows/win32/adschema/s-string-generalized-time" target="_blank" rel="noopener">String(Generalized-Time) syntax</a>（whenCreated の形）</li>
+        <li><a href="https://learn.microsoft.com/troubleshoot/windows-server/active-directory/convert-datetime-attributes-to-standard-format" target="_blank" rel="noopener">KB 555936</a>（w32tm /ntte。例の値 128271382742968750 をテストで確かめています）</li>
+        <li><a href="https://learn.microsoft.com/dotnet/api/system.datetime.ticks" target="_blank" rel="noopener">DateTime.Ticks</a>（.NET の Ticks）</li>
+      </ul>
+      <dl class="info-list">
+        <dt>最終確認日</dt>
+        <dd><time datetime="2026-09-24">2026年9月24日</time></dd>
       </dl>
     </article>
 
@@ -92,10 +173,10 @@
     <article class="card content" id="notes">
       <h2>ご利用上の注意・データの扱い</h2>
       <ul>
-        <li><strong>保存されるデータ</strong>：（何をブラウザに保存するか。保存しないならそう書く）</li>
-        <li><strong>バックアップ</strong>：「ファイルに書き出す」で、（保存している内容）を JSON ファイルにできます。ファイルはこの端末の中で作り、どこにも送信しません。機種変更のときやブラウザのデータを消す前に書き出しておき、新しい端末ではファイルを移して「ファイルから読み込む」を押してください（今の内容はファイルの内容に置き換わります）。（ブラウザに保存しないツールではこの行を消す）</li>
-        <li><strong>共有リンク</strong>：（共有機能があれば、リンクに何が含まれるか。URL の「#」以降に入るのでサーバーには送信されない）</li>
-        <li><strong>結果の扱い</strong>：（計算結果は目安であること、最終的な確認先など）</li>
+        <li><strong>送信しないもの</strong>：入力した値・貼り付けた一覧は、お使いのブラウザの中だけで計算します。どこにも送信せず、保存もしません。</li>
+        <li><strong>保存されるデータ</strong>：「表示するタイムゾーン」の選択だけを、このブラウザに保存します（<code>filetime_tz</code>）。</li>
+        <li><strong>共有リンク</strong>：「この値を開くリンクをコピー」で作るリンクには、値と属性名が URL の「#」以降に入ります。「#」以降はサーバーに送られませんが、リンクを渡した相手には値が見えます。</li>
+        <li><strong>結果の扱い</strong>：変換は定義どおりの計算ですが、属性の意味の説明は Microsoft の文書に拠る一般的なものです。運用の判断はお使いの環境で確かめてください。PowerShell の例は文字として表示するだけで、このページが実行することはありません。</li>
       </ul>
       <p><a href="https://docs.google.com/forms/d/e/1FAIpQLSd8B90qh5lEIyr25iw1jOjdQjOyaPZ1_z2wMB4kH-EmEeJYWw/viewform?usp=pp_url&amp;entry.585564634=filetime" target="_blank" rel="noopener">ご要望・不具合の報告（Google フォーム）</a>：いただいた内容をもとに直します。お返事はしていません。</p>
       <p>サイト全体の運営者情報・免責事項は<a href="../about.html">こちら</a>、プライバシーポリシーは<a href="../privacy-policy.html">こちら</a>です（すべてのツールで共通）。</p>

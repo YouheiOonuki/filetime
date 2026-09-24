@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FILETIME・LDAP タイムスタンプ変換｜yorozu-craft</title>
-  <meta name="description" content="pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時に、日時を数値に。貼り付けた一覧もまとめて変換。ブラウザだけで動きます。">
+  <title>FILETIME・LDAP タイムスタンプ変換（pwdLastSet・lastLogonTimestamp を日時に）｜yorozu-craft</title>
+  <meta name="description" content="pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時（UTC・日本時間）に、日時を数値に変換。0 や 9223372036854775807 の意味、負の値（maxPwdAge）も説明。Get-ADUser の出力を貼り付けてまとめて変換。ブラウザだけで動き、値は送信しません。">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://yorozu-craft.com/filetime/">
+  <link rel="alternate" hreflang="ja" href="https://yorozu-craft.com/filetime/">
+  <link rel="alternate" hreflang="en" href="https://yorozu-craft.com/filetime/en/">
+  <link rel="alternate" hreflang="x-default" href="https://yorozu-craft.com/filetime/">
 
   <meta property="og:title" content="FILETIME・LDAP タイムスタンプ変換｜yorozu-craft">
-  <meta property="og:description" content="pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時に、日時を数値に。貼り付けた一覧もまとめて変換。ブラウザだけで動きます。">
+  <meta property="og:description" content="pwdLastSet・lastLogonTimestamp・accountExpires の 18 桁を日時に。0・無期限・負の値の意味つき。一覧の貼り付けでまとめて変換。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://yorozu-craft.com/filetime/">
   <meta property="og:site_name" content="yorozu-craft">
   <meta property="og:locale" content="ja_JP">
+  <meta property="og:locale:alternate" content="en_US">
   <meta property="og:image" content="https://yorozu-craft.com/filetime/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -35,7 +39,7 @@
   }
   </script>
 
-  <!-- Google AdSense（サイト所有確認 + 広告配信スクリプト）。全画面で操作する画面なら script を消して meta だけ残す -->
+  <!-- Google AdSense（サイト所有確認 + 広告配信スクリプト） -->
   <meta name="google-adsense-account" content="ca-pub-5375267956079717">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5375267956079717"
      crossorigin="anonymous"></script>
@@ -48,29 +52,98 @@
 
   <header class="app-header">
     <h1>FILETIME・LDAP タイムスタンプ変換</h1>
-    <p class="subtitle">pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数値を日時に、日時を数値に。貼り付けた一覧もまとめて変換。ブラウザだけで動きます。</p>
+    <p class="subtitle">pwdLastSet・lastLogonTimestamp・accountExpires の 18 桁を日時に。日時を 18 桁に。</p>
+    <p class="lang-switch"><a href="./en/" hreflang="en" lang="en">English</a></p>
   </header>
 
   <main class="app-main">
 
-    <!-- ここにツール本体を書く（例: 金額を 100 円単位で切り上げる） -->
-    <section class="card" aria-labelledby="tool-heading">
-      <h2 id="tool-heading">計算</h2>
+    <section class="card" aria-labelledby="h-single">
+      <h2 id="h-single">数値 → 日時</h2>
       <div class="field">
-        <label for="amount">金額</label>
-        <p class="hint">入力内容はこの端末のブラウザにだけ保存され、外部には送信されません。</p>
-        <input type="number" id="amount" inputmode="numeric" placeholder="例：1234">
+        <label for="value">値（18 桁の数・16 進・「pwdLastSet : 134…」の行をそのまま）</label>
+        <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例：134000000000000000">
+        <p class="hint">カンマ・空白入りでも、0x で始まる 16 進でも読めます。値はこの端末の中で計算し、どこにも送信しません。</p>
       </div>
-      <p>結果：<strong id="result" aria-live="polite">—</strong></p>
-      <button type="button" id="share" class="btn">結果を開くリンクをコピー</button>
-      <!-- 保存内容のファイルへの書き出し・読み込み（README「ツールを追加するとき」20。保存する・共有するボタンの近くに置く） -->
-      <button type="button" id="backup-export" class="btn">ファイルに書き出す</button>
-      <button type="button" id="backup-import" class="btn">ファイルから読み込む</button>
-      <input type="file" id="backup-file" accept=".json,application/json" hidden>
-      <p id="backup-msg" class="small" aria-live="polite"></p>
+      <p class="examples">
+        <span class="small">例：</span>
+        <button type="button" class="chip" data-example="pwdLastSet : 134347122000000000">pwdLastSet</button>
+        <button type="button" class="chip" data-example="lastLogonTimestamp : 134340000000000000">lastLogonTimestamp</button>
+        <button type="button" class="chip" data-example="accountExpires : 9223372036854775807">accountExpires 無期限</button>
+        <button type="button" class="chip" data-example="pwdLastSet : 0">pwdLastSet 0</button>
+        <button type="button" class="chip" data-example="maxPwdAge : -36288000000000">maxPwdAge</button>
+        <button type="button" class="chip" data-example="whenCreated : 20260924083000.0Z">whenCreated</button>
+      </p>
+      <div class="field-row">
+        <div class="field">
+          <label for="mode">数値の種類</label>
+          <select id="mode">
+            <option value="auto">自動（18 桁は FILETIME）</option>
+            <option value="filetime">FILETIME・LDAP（1601 年から 100 ns 単位）</option>
+            <option value="unix">Unix 秒</option>
+            <option value="unixms">Unix ミリ秒</option>
+            <option value="dotnet">.NET DateTime.Ticks</option>
+            <option value="gentime">一般化時刻（20260924083000.0Z）</option>
+            <option value="datetime">日時（2026-09-24 08:30）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="attr">属性</label>
+          <select id="attr">
+            <option value="">行から読む・指定なし</option>
+            <option>pwdLastSet</option>
+            <option>lastLogonTimestamp</option>
+            <option>lastLogon</option>
+            <option>accountExpires</option>
+            <option>badPasswordTime</option>
+            <option>lockoutTime</option>
+            <option>msDS-UserPasswordExpiryTimeComputed</option>
+            <option>maxPwdAge</option>
+            <option>minPwdAge</option>
+            <option>lockoutDuration</option>
+            <option>lockOutObservationWindow</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tz">表示するタイムゾーン</label>
+          <select id="tz"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="max-age">パスワードの最大有効期間（日。pwdLastSet のとき期限を出す）</label>
+        <input type="number" id="max-age" min="0" max="999" step="1" value="42" inputmode="numeric">
+        <p class="hint">既定のドメインポリシーは 42 日。0 か空欄なら期限を出しません。</p>
+      </div>
+      <div id="result" class="result" aria-live="polite" hidden></div>
     </section>
 
-    <p class="small"><a href="./guide.html">使い方・よくある質問・ご利用上の注意</a></p>
+    <section class="card" aria-labelledby="h-reverse">
+      <h2 id="h-reverse">日時 → 数値</h2>
+      <div class="field">
+        <label for="dt">日時（上で選んだタイムゾーンの時刻として）</label>
+        <div class="inline-row">
+          <input type="datetime-local" id="dt" step="1">
+          <button type="button" class="btn btn-sub" id="now">今</button>
+        </div>
+        <p class="hint">LDAP フィルター（lastLogonTimestamp&lt;=…）や Get-ADUser -Filter に使う数を作れます。</p>
+      </div>
+      <div id="reverse-result" class="result" aria-live="polite"></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-bulk">
+      <h2 id="h-bulk">まとめて変換（貼り付け）</h2>
+      <div class="field">
+        <label for="bulk">Get-ADUser -Properties * ・ldifde・csvde の出力、「名前=値」の行、18 桁の数の並び</label>
+        <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
+        <p class="hint">知っている属性（pwdLastSet など）と、FILETIME らしい大きさの数だけを拾い、logonCount などほかの数は飛ばします。貼り付けた内容はこの端末の中だけで処理し、送信も保存もしません。</p>
+      </div>
+      <p><button type="button" class="btn" id="bulk-run">変換する</button> <button type="button" class="btn btn-sub" id="bulk-clear">消す</button></p>
+      <div id="bulk-result" aria-live="polite"></div>
+    </section>
+
+    <p id="msg" class="small msg" role="status" aria-live="polite"></p>
+
+    <p class="small"><a href="./guide.html">使い方・よくある質問（lastLogonTimestamp のずれ、accountExpires の 1 日のずれ など）</a></p>
 
   </main>
 
@@ -87,7 +160,6 @@
     <p>&copy; 2026 yorozu-craft. All rights reserved.</p>
   </footer>
 
-  <script src="./constants.js"></script>
   <script src="./calc.js"></script>
   <script src="./main.js"></script>
   <!-- Cloudflare Web Analytics（Cookie を使わないアクセス解析） --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b79bf821e1fd4b6683866d493b1de426"}'></script><!-- End Cloudflare Web Analytics -->
