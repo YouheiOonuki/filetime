@@ -266,6 +266,11 @@ details.card.opt[open] { padding-bottom: 0.9rem; }
 details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 0.9rem; }
 .opt-state { color: var(--text); font-weight: normal; overflow-wrap: anywhere; }
 .opts { margin-bottom: 1rem; }
+/* この道具について（WRITING 1 章。details.card.opt の見た目を使い、中の文だけ整える） */
+details.card.opt.about-tool > summary { white-space: normal; }
+details.about-tool h3 { font-size: 0.95rem; margin: 0.9rem 0 0.3rem; }
+details.about-tool p, details.about-tool li { font-size: 0.9rem; line-height: 1.75; }
+details.about-tool ul { padding-left: 1.2rem; margin: 0.3rem 0 0.5rem; }
 
 @media print {
   /* 印刷では折りたたみの中も出す */

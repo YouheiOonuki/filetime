@@ -151,6 +151,25 @@
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
+    <!-- about-tool: 道具の説明（使い方ページの要約。AdSense 審査 2026-10-04。WRITING 1 章の 400〜800 字） -->
+    <details class="about-tool card opt" id="about-tool">
+      <summary>この道具について（使い方・計算のしくみ・注意）</summary>
+      <h3>この変換でわかること</h3>
+      <p>Active Directory の pwdLastSet・lastLogonTimestamp・accountExpires などに入っている 18 桁の数を、UTC と選んだタイムゾーンの日時に直します。逆に日時から数を出すときは、LDAP フィルターの例も添えます。0 や 9223372036854775807、負の値には、属性ごとの意味を書き添えます。</p>
+      <h3>使い方の要点</h3>
+      <ul>
+      <li>18 桁の数か「pwdLastSet : 134…」の行を入れると、すぐ結果が出ます。</li>
+      <li>Get-ADUser・ldifde・csvde の出力は「まとめて変換」に貼ると表になり、TSV でコピーできます。</li>
+      <li>pwdLastSet の期限は「パスワードの最大有効期間」（既定 42 日）から出します。</li>
+      </ul>
+      <h3>変換のしくみ</h3>
+      <p>FILETIME は 1601 年 1 月 1 日 0 時（UTC）からの 100 ナノ秒単位の数です。64 ビットの値を BigInt で扱い、桁を落とさずに日時へ直します。「自動」では、属性名のない正の 10 進数のうち 14 桁以下を Unix 秒・ミリ秒、それより長い数を FILETIME として読みます。maxPwdAge などの負の値は日時ではなく期間なので、日数と分に直して示します。</p>
+      <h3>注意</h3>
+      <p>lastLogonTimestamp は 9〜14 日ほど遅れることがあり、lastLogon は DC ごとの値です。入力した値と貼り付けた一覧はこの端末の中だけで計算し、外部には送信しません。保存するのは表示するタイムゾーンの選択だけです（localStorage、キー filetime_tz）。</p>
+      <p>読める形式の一覧と Excel での変換式は<a href="./guide.html">使い方ページ</a>に。AD を RSAT なしで検索するなら <a href="../ADSearch/">ADSearch</a>、proxy.pac の確かめには <a href="../pac-tester/">PAC ファイル テスター</a>。</p>
+    </details>
+    <!-- /about-tool -->
+
     <p class="small"><a href="./guide.html">使い方・よくある質問</a></p>
 
   </main>
