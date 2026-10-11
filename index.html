@@ -152,6 +152,24 @@
 
     <p id="msg" class="small msg" role="status" aria-live="polite"></p>
 
+    <!-- about-tool: 道具の説明（使い方ページの要約。yorozu-plans QUEUE Q-002） -->
+    <details class="about-tool card opt no-print" id="about-tool">
+      <summary>この道具について（使い方・しくみ・注意）</summary>
+      <h3>FILETIME・LDAP タイムスタンプ変換でわかること</h3>
+      <p>Active Directory の pwdLastSet・lastLogonTimestamp・accountExpires などの 18 桁の数を日時に直します。日時から FILETIME と LDAP フィルターの例も出します。</p>
+      <h3>使い方の要点</h3>
+      <ul>
+      <li>18 桁の数か「pwdLastSet : 134…」の行を入れると日時が出ます。</li>
+      <li>0・無期限・負の値には、属性名から意味を添えます。</li>
+      <li>Get-ADUser や ldifde の出力を貼ると、まとめて表にします。</li>
+      </ul>
+      <h3>しくみ</h3>
+      <p>FILETIME は、1601 年 1 月 1 日（UTC）からの 100 ナノ秒単位の数です。値は UTC なので、日本時間はその 9 時間後です。「自動」は 10〜11 桁を Unix 秒、12〜14 桁を Unix ミリ秒、それ以外を FILETIME として読みます。accountExpires の 0 と 9223372036854775807 は無期限、pwdLastSet の 0 は次回ログオン時にパスワード変更が必要です。maxPwdAge などの負の値は期間です。根拠は Microsoft Learn と [MS-ADTS]・[MS-SAMR] で、最終確認日は 2026-09-24 です。</p>
+      <h3>注意</h3>
+      <p>lastLogonTimestamp は更新が 9〜14 日ほど遅れることがあります。正確な最終ログオンは、DC ごとに記録される lastLogon を全 DC で比べます。入力した値と貼り付けた一覧はこの端末の中だけで計算し、外部には送信しません。</p>
+      <p>読める形式と特別な値の一覧は<a href="./guide.html">FILETIME・LDAP タイムスタンプ変換の使い方</a>に。</p>
+    </details>
+    <!-- /about-tool -->
     <p class="small"><a href="./guide.html">使い方・よくある質問</a></p>
 
   </main>
