@@ -61,11 +61,10 @@
     <section class="card" aria-labelledby="h-single">
       <h2 id="h-single">Timestamp → date</h2>
       <div class="field">
-        <label for="value">Value (18-digit number, hex, or a whole line such as "pwdLastSet : 134…")</label>
+        <label for="value">Value (18-digit number, hex, or a whole line such as "pwdLastSet : 134…"). Commas, spaces and 0x hex are fine.</label>
         <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. 134000000000000000">
-        <p class="hint">Commas, spaces and 0x hex are fine.</p>
       </div>
-      <p class="examples">
+      <div class="examples" role="group" aria-label="Examples">
         <span class="small">Examples:</span>
         <button type="button" class="chip" data-example="pwdLastSet : 134347122000000000">pwdLastSet</button>
         <button type="button" class="chip" data-example="lastLogonTimestamp : 134340000000000000">lastLogonTimestamp</button>
@@ -73,7 +72,7 @@
         <button type="button" class="chip" data-example="pwdLastSet : 0">pwdLastSet 0</button>
         <button type="button" class="chip" data-example="maxPwdAge : -36288000000000">maxPwdAge</button>
         <button type="button" class="chip" data-example="whenCreated : 20260924083000.0Z">whenCreated</button>
-      </p>
+      </div>
       <div class="field-row">
         <div class="field">
           <label for="mode">Value type</label>
