@@ -61,11 +61,10 @@
     <section class="card" aria-labelledby="h-single">
       <h2 id="h-single">数値 → 日時</h2>
       <div class="field">
-        <label for="value">値（18 桁の数か「属性 : 値」の行）</label>
+        <label for="value">値（18 桁の数か「属性 : 値」の行。カンマ入り・0x の 16 進も読みます）</label>
         <input type="text" id="value" class="wide mono" inputmode="text" autocomplete="off" spellcheck="false" placeholder="例：134000000000000000">
-        <p class="hint">カンマ入り・0x の 16 進も読みます。</p>
       </div>
-      <p class="examples">
+      <div class="examples" role="group" aria-label="例">
         <span class="small">例：</span>
         <button type="button" class="chip" data-example="pwdLastSet : 134347122000000000">pwdLastSet</button>
         <button type="button" class="chip" data-example="lastLogonTimestamp : 134340000000000000">lastLogonTimestamp</button>
@@ -73,7 +72,7 @@
         <button type="button" class="chip" data-example="pwdLastSet : 0">pwdLastSet 0</button>
         <button type="button" class="chip" data-example="maxPwdAge : -36288000000000">maxPwdAge</button>
         <button type="button" class="chip" data-example="whenCreated : 20260924083000.0Z">whenCreated</button>
-      </p>
+      </div>
       <div class="field-row">
         <div class="field">
           <label for="mode">数値の種類</label>
