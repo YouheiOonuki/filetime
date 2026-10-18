@@ -116,7 +116,7 @@
             <tr><td>.NET DateTime.Ticks</td><td><code>639000000000000000</code></td><td>0001-01-01 からの 100 ナノ秒の数。FILETIME との差は 504911232000000000</td></tr>
           </tbody>
         </table>
-        <p>「自動」は 10〜11 桁を Unix 秒、12〜14 桁を Unix ミリ秒、それ以外を FILETIME として読みます。FILETIME だと 2200 年より後になる数には、.NET の Ticks としての読み方も添えます。</p>
+        <p>「自動」は 11 桁までを Unix 秒（5138 年まで）、12〜14 桁を Unix ミリ秒、それ以外を FILETIME として読みます。FILETIME だと 2200 年より後になる数には、.NET の Ticks としての読み方も添えます。</p>
       </details>
     </article>
 
