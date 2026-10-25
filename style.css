@@ -95,7 +95,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 
 /* ボタン（主は .btn-primary、ほかは .btn。色と線は皮が持つ） */
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); text-decoration: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; }
 
 /* 読みもの（guide.html） */
 .content h3 { margin: var(--sp-4) 0 var(--sp-1); }
@@ -104,9 +104,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .faq dt { font-weight: 700; margin-top: var(--sp-4); }
 .faq dt::before { content: 'Q. '; }
 .faq dd { color: var(--muted); padding: var(--sp-1) 0 var(--sp-2) 1.2rem; border-bottom: 1px solid var(--border); }
-.info-list { display: grid; grid-template-columns: max-content 1fr; gap: var(--sp-2) 1.2rem; }
-.info-list dt { font-weight: 700; }
-.info-list dd { color: var(--muted); }
 .small { font-size: var(--fs-s); color: var(--muted); margin-top: var(--sp-2); }
 
 /* フッター */
@@ -180,13 +177,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
    =========================== */
 .result .empty { color: var(--muted); margin: 0; }
 details.card.opt { padding: 0 var(--sp-4); margin-bottom: var(--sp-3); }
-details.card.opt > summary {
-  display: block; min-height: var(--tap); padding: var(--sp-3) 0;
-  color: var(--accent); list-style: none;
-}
-details.card.opt > summary::-webkit-details-marker { display: none; }
-details.card.opt > summary::before { content: '▸'; margin-right: var(--sp-2); }
-details.card.opt[open] > summary::before { content: '▾'; }
+details.card.opt > summary { min-height: var(--tap); padding: var(--sp-3) 0; color: var(--accent); }
 details.card.opt[open] { padding-bottom: var(--sp-4); }
 details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: var(--sp-4); }
 .opt-state { color: var(--text); font-weight: 400; overflow-wrap: anywhere; }
@@ -195,7 +186,6 @@ details.card.opt[open] > summary { border-bottom: 1px solid var(--border); margi
 @media print {
   /* 印刷では折りたたみの中も出す */
   main details::details-content { content-visibility: visible; display: block; }
-  main details > summary::before { content: none; }
 }
 
 /* この道具について（結果の後ろの折りたたみ。使い方ページの要約。AdSense 審査 2026-10-04） */
