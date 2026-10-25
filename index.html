@@ -22,8 +22,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#8b4513" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1c1814" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef0f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15191d" media="(prefers-color-scheme: dark)">
 
   <script type="application/ld+json">
   {
@@ -115,7 +115,7 @@
           <label for="tz">表示するタイムゾーン</label>
           <select id="tz"></select>
         </div>
-        <button type="button" class="btn btn-sub" data-reset-storage="filetime_">保存した内容をすべて消す（初期状態に戻す）</button>
+        <button type="button" class="btn" data-reset-storage="filetime_">保存した内容をすべて消す（初期状態に戻す）</button>
       </details>
       <details class="card opt" id="opt-age">
         <summary>パスワードの最大有効期間（日）: <span class="opt-state"></span></summary>
@@ -131,7 +131,7 @@
           <label for="dt">日時（選んだタイムゾーン）</label>
           <div class="inline-row">
             <input type="datetime-local" id="dt" step="1">
-            <button type="button" class="btn btn-sub" id="now">今</button>
+            <button type="button" class="btn" id="now">今</button>
           </div>
           <p class="hint">LDAP フィルターに使う数を出します。</p>
         </div>
@@ -144,7 +144,7 @@
           <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
           <p class="hint">日時の属性だけを拾います。送信も保存もしません。</p>
         </div>
-        <p><button type="button" class="btn" id="bulk-run">変換する</button> <button type="button" class="btn btn-sub" id="bulk-clear">消す</button></p>
+        <p><button type="button" class="btn btn-primary" id="bulk-run">変換する</button> <button type="button" class="btn" id="bulk-clear">消す</button></p>
         <div id="bulk-result" aria-live="polite"></div>
       </details>
     </div>
