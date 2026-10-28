@@ -193,7 +193,7 @@
     if (info.kind === 'datetime' && attr.toLowerCase() === 'accountexpires') noteVals.aduc = C.aducEndOfDate(ticks, LOCAL_TZ);
     if (info.kind === 'datetime' && attr.toLowerCase() === 'pwdlastset') noteVals.age = relText(ticks);
     if (info.notes.length) {
-      html += '<div class="notes">' + info.notes.map(function (k) { return '<p>' + fmt(T.notes[k], noteVals) + '</p>'; }).join('') + '</div>';
+      html += '<div class="notice">' + info.notes.map(function (k) { return '<p>' + fmt(T.notes[k], noteVals) + '</p>'; }).join('') + '</div>';
     }
     html += '<table class="result-table"><tbody>';
     if (info.kind === 'interval' || info.kind === 'mininterval' || info.kind === 'negative') {
@@ -303,7 +303,7 @@
     lastBulkRows = rows;
     var h = T.bulkHead;
     var html = '<p class="small">' + esc(fmt(T.bulkCount, { n: rows.length })) + (rows.length >= BULK_MAX ? ' ' + esc(fmt(T.bulkLimit, { n: BULK_MAX })) : '') +
-      ' <button type="button" class="btn btn-sub" id="bulk-copy">' + (LANG === 'ja' ? '表をコピー（TSV）' : 'Copy table (TSV)') + '</button></p>';
+      ' <button type="button" class="btn" id="bulk-copy">' + (LANG === 'ja' ? '表をコピー（TSV）' : 'Copy table (TSV)') + '</button></p>';
     html += '<div class="table-wrap"><table class="bulk-table"><thead><tr><th>' + h.map(esc).join('</th><th>') + '</th></tr></thead><tbody>';
     html += rows.map(function (r) {
       return '<tr><td>' + r.line + '</td><td>' + esc(r.attr) + '</td><td class="num">' + esc(r.raw) + '</td><td>' + esc(r.utc) + '</td><td>' + esc(r.zone) + '</td><td>' + esc(r.meaning) + '</td></tr>';

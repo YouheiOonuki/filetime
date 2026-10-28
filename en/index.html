@@ -22,8 +22,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#8b4513" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1c1814" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef0f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15191d" media="(prefers-color-scheme: dark)">
 
   <script type="application/ld+json">
   {
@@ -115,7 +115,7 @@
           <label for="tz">Time zone to show</label>
           <select id="tz"></select>
         </div>
-        <button type="button" class="btn btn-sub" data-reset-storage="filetime_">Delete everything saved (reset)</button>
+        <button type="button" class="btn" data-reset-storage="filetime_">Delete everything saved (reset)</button>
       </details>
       <details class="card opt" id="opt-age">
         <summary>Maximum password age in days: <span class="opt-state"></span></summary>
@@ -131,7 +131,7 @@
           <label for="dt">Date and time (in the time zone selected above)</label>
           <div class="inline-row">
             <input type="datetime-local" id="dt" step="1">
-            <button type="button" class="btn btn-sub" id="now">Now</button>
+            <button type="button" class="btn" id="now">Now</button>
           </div>
           <p class="hint">Gives the number for an LDAP filter or Get-ADUser -Filter.</p>
         </div>
@@ -144,7 +144,7 @@
           <textarea id="bulk" rows="8" class="mono" spellcheck="false" placeholder="pwdLastSet         : 134347122000000000&#10;lastLogonTimestamp : 134340000000000000&#10;accountExpires     : 9223372036854775807&#10;whenCreated        : 20260924083000.0Z"></textarea>
           <p class="hint">Only timestamp attributes are picked up. Nothing is uploaded or stored.</p>
         </div>
-        <p><button type="button" class="btn" id="bulk-run">Convert</button> <button type="button" class="btn btn-sub" id="bulk-clear">Clear</button></p>
+        <p><button type="button" class="btn btn-primary" id="bulk-run">Convert</button> <button type="button" class="btn" id="bulk-clear">Clear</button></p>
         <div id="bulk-result" aria-live="polite"></div>
       </details>
     </div>
