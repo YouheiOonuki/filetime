@@ -198,3 +198,6 @@ details.card.opt.about-tool > summary { white-space: normal; }   /* 長い summa
 details.about-tool h3 { margin: var(--sp-4) 0 var(--sp-1); }
 details.about-tool p, details.about-tool li { line-height: 1.75; }
 details.about-tool ul { padding-left: 1.2rem; margin: var(--sp-1) 0 var(--sp-2); }
+
+/* 出典の一覧の 1 つだけ置くリンクも押せる高さに（読み物の型の 44px。7.144 の最初の便） */
+li > a:only-child { display: inline-flex; align-items: center; min-height: var(--tap); }
