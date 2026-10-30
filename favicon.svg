@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <!-- FILETIME・LDAP タイムスタンプ変換: 時計と 2 進の目盛り -->
-  <rect width="64" height="64" rx="14" fill="#8b4513"/>
-  <circle cx="32" cy="30" r="19" fill="#faf6ee"/>
+  <rect width="64" height="64" rx="14" fill="#0e5a6b"/>
+  <circle cx="32" cy="30" r="19" fill="#eef0f2"/>
   <circle cx="32" cy="30" r="19" fill="none" stroke="#e0a066" stroke-width="3"/>
-  <path d="M32 30V17M32 30l9 6" stroke="#3a3025" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="32" cy="30" r="2.6" fill="#8b4513"/>
-  <g fill="#faf6ee">
+  <path d="M32 30V17M32 30l9 6" stroke="#1d2125" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="32" cy="30" r="2.6" fill="#0e5a6b"/>
+  <g fill="#eef0f2">
     <rect x="12" y="54" width="5" height="5" rx="1"/><rect x="20" y="54" width="5" height="5" rx="1" opacity=".35"/>
     <rect x="28" y="54" width="5" height="5" rx="1"/><rect x="36" y="54" width="5" height="5" rx="1"/>
     <rect x="44" y="54" width="5" height="5" rx="1" opacity=".35"/>
