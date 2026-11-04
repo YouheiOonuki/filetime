@@ -251,6 +251,7 @@
       history.replaceState(null, '', url);
       copyText(url, T.shareDone);
     });
+    window.yzUsed?.();
   }
 
   // --- 日時 → 数値 ---
@@ -279,6 +280,7 @@
       "Get-ADUser -Filter 'lastLogonTimestamp -lt " + t + "'"
     ].filter(Boolean).join('\n')) + '</pre></details>';
     el.rout.innerHTML = html;
+    window.yzUsed?.();
   }
 
   // --- まとめて変換 ---
@@ -316,6 +318,7 @@
       })).join('\n');
       copyText(tsv, T.copied);
     });
+    window.yzUsed?.();
   }
   var lastBulkRows = [];
 
