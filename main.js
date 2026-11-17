@@ -68,7 +68,7 @@
       copied: 'コピーしました', copyFail: 'コピーできませんでした。選択してコピーしてください。',
       shareDone: 'この値を開くリンクをコピーしました（値はリンクの # 以降に入り、サーバーには送られません）。',
       bulkCount: '{n} 件を変換しました', bulkNone: '変換できる値が見つかりませんでした。「属性名 : 値」の行（Get-ADUser -Properties * の出力など）か、18 桁の数を貼り付けてください。',
-      bulkHead: ['行', '属性', '値', 'UTC', '選んだタイムゾーン', '意味'], guessed: '（属性不明・FILETIME とみなした）',
+      bulkHead: ['行', '属性', '値', 'UTC', '選んだタイムゾーン', '意味'], bulkName: '名前', guessed: '（属性不明・FILETIME とみなした）',
       bulkLimit: '先頭 {n} 件だけ表示しています。',
       filterNote: 'LDAP フィルターの例（この日時より前）', now: '今',
       loadedShare: '共有リンクの値を表示しています。'
@@ -119,7 +119,7 @@
       copied: 'Copied', copyFail: 'Could not copy. Please select and copy the text.',
       shareDone: 'Link copied. The value is after the # in the link, so it is never sent to a server.',
       bulkCount: 'Converted {n} values', bulkNone: 'No convertible values found. Paste "attribute : value" lines (such as Get-ADUser -Properties * output) or 18-digit numbers.',
-      bulkHead: ['Line', 'Attribute', 'Value', 'UTC', 'Selected time zone', 'Meaning'], guessed: '(unknown attribute, treated as FILETIME)',
+      bulkHead: ['Line', 'Attribute', 'Value', 'UTC', 'Selected time zone', 'Meaning'], bulkName: '', guessed: '(unknown attribute, treated as FILETIME)',
       bulkLimit: 'Showing the first {n} values.',
       filterNote: 'LDAP filter examples (earlier than this time)', now: 'Now',
       loadedShare: 'Showing the value from a shared link.'
@@ -300,15 +300,17 @@
       meaning = keys.map(function (k) { return T.notes[k].replace(/<[^>]+>/g, '').split(/[。.](\s|$)/)[0]; }).join(' / ');
       if (info.kind === 'interval') meaning = T.duration;
       if (it.guessed) meaning = (meaning ? meaning + ' ' : '') + T.guessed;
-      return { line: it.line, attr: it.attr || '—', raw: it.raw, utc: utc, zone: zone, meaning: meaning };
+      return { line: it.line, attr: it.attr || '—', raw: it.raw, utc: utc, zone: zone, meaning: meaning, name: C.bulkName(it) };
     });
     lastBulkRows = rows;
     var h = T.bulkHead;
     var html = '<p class="small">' + esc(fmt(T.bulkCount, { n: rows.length })) + (rows.length >= BULK_MAX ? ' ' + esc(fmt(T.bulkLimit, { n: BULK_MAX })) : '') +
       ' <button type="button" class="btn" id="bulk-copy">' + (LANG === 'ja' ? '表をコピー（TSV）' : 'Copy table (TSV)') + '</button></p>';
-    html += '<div class="table-wrap"><table class="bulk-table"><thead><tr><th>' + h.map(esc).join('</th><th>') + '</th></tr></thead><tbody>';
+    // 貼り付けに名前（名札か dn）があるときだけ、いちばん左に名前の列（書き出しの TSV の列は変えない）
+    var named = C.bulkHasNames(items);
+    html += '<div class="table-wrap"><table class="bulk-table' + (named ? ' named' : '') + '"><thead><tr>' + (named ? '<th>' + esc(T.bulkName) + '</th>' : '') + '<th>' + h.map(esc).join('</th><th>') + '</th></tr></thead><tbody>';
     html += rows.map(function (r) {
-      return '<tr><td>' + r.line + '</td><td>' + esc(r.attr) + '</td><td class="num">' + esc(r.raw) + '</td><td>' + esc(r.utc) + '</td><td>' + esc(r.zone) + '</td><td>' + esc(r.meaning) + '</td></tr>';
+      return '<tr>' + (named ? '<td class="name">' + esc(r.name) + '</td>' : '') + '<td>' + r.line + '</td><td>' + esc(r.attr) + '</td><td class="num">' + esc(r.raw) + '</td><td>' + esc(r.utc) + '</td><td>' + esc(r.zone) + '</td><td>' + esc(r.meaning) + '</td></tr>';
     }).join('');
     html += '</tbody></table></div>';
     el.bout.innerHTML = html;

@@ -300,3 +300,40 @@ test('constants: すべての値に出典と確認日がある', () => {
     assert.match(c.url, /^https:\/\/learn\.microsoft\.com\//, `${key} の url は Microsoft Learn`);
   }
 });
+
+// Q-353: 結果の表の「名前」の列は、名前のある貼り付けのときだけ。3 形 × 名前あり・なし
+test('まとめて変換: 名前の列は、名前のある貼り付けのときだけ（Format-Table・CSV・LDIF）', () => {
+  const withNames = {
+    table: [
+      'Name            SamAccountName pwdLastSet',
+      '----            -------------- ----------',
+      'Sato Ichiro     sato.i         134347122000000000',
+      'Suzuki Hanako   suzuki.h       133900000000000000'   // 表の中の 0 は拾わない（18 桁の数だけを拾う今の決まり）
+    ].join('\r\n'),
+    csv: ['"Name","SamAccountName","pwdLastSet"', '"Sato Ichiro","sato.i","134347122000000000"', '"Suzuki Hanako","suzuki.h","0"'].join('\r\n'),
+    ldif: ['dn: CN=Sato Ichiro,OU=Staff,DC=example,DC=test', 'pwdLastSet: 134347122000000000', '', 'dn: CN=Suzuki Hanako,OU=Staff,DC=example,DC=test', 'pwdLastSet: 0'].join('\n')
+  };
+  const expected = {
+    table: ['Sato Ichiro sato.i', 'Suzuki Hanako suzuki.h'],
+    csv: ['Sato Ichiro sato.i', 'Suzuki Hanako suzuki.h'],
+    ldif: ['CN=Sato Ichiro,OU=Staff,DC=example,DC=test', 'CN=Suzuki Hanako,OU=Staff,DC=example,DC=test']
+  };
+  for (const k of Object.keys(withNames)) {
+    const a = C.extractBulk(withNames[k]);
+    assert.equal(C.bulkHasNames(a), true, k);
+    assert.deepEqual(a.map(C.bulkName), expected[k], k);
+  }
+  const noNames = {
+    table: ['pwdLastSet         lastLogonTimestamp', '----------         ------------------', '134347122000000000 134340000000000000'].join('\r\n'),
+    csv: ['"pwdLastSet","lastLogonTimestamp"', '"134347122000000000","134340000000000000"'].join('\r\n'),
+    ldif: ['pwdLastSet: 134347122000000000', 'lastLogonTimestamp: 134340000000000000'].join('\n')
+  };
+  for (const k of Object.keys(noNames)) {
+    const a = C.extractBulk(noNames[k]);
+    assert.equal(a.length, 2, k);
+    assert.equal(C.bulkHasNames(a), false, k);
+  }
+  assert.equal(C.bulkHasNames([]), false);
+  // csvde で名札と dn の両方があるときは名札
+  assert.equal(C.bulkName(C.extractBulk('DN,sAMAccountName,pwdLastSet\n"CN=Taro,OU=Users,DC=example,DC=test",taro,134347122000000000\n')[0]), 'taro');
+});

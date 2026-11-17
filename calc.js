@@ -529,6 +529,13 @@
     return out;
   }
 
+  /**
+   * まとめて変換の結果の表の「名前」の列に出す字。名札（label）があればそれ、無ければ dn。どちらも無ければ ''
+   * 列を足すのは、1 件でも名前のある貼り付けのときだけ（bulkHasNames）
+   */
+  function bulkName(item) { return (item && (item.label || item.dn)) || ''; }
+  function bulkHasNames(items) { return (items || []).some(function (it) { return bulkName(it) !== ''; }); }
+
   // --- 共有リンク（#v=値、&a=属性名。入力内容は # 以降だけに入れる） ---
 
   function toShareHash(value, attr) {
@@ -580,7 +587,7 @@
     ticksToGeneralized: ticksToGeneralized, parseGeneralized: parseGeneralized, isGeneralizedLike: isGeneralizedLike,
     durationParts: durationParts, formatDuration: formatDuration,
     interpret: interpret, aducEndOfDate: aducEndOfDate, ageDays: ageDays, addDays: addDays,
-    parseSingle: parseSingle, looksLikeDotnet: looksLikeDotnet, extractBulk: extractBulk, splitCsvLine: splitCsvLine,
+    parseSingle: parseSingle, looksLikeDotnet: looksLikeDotnet, extractBulk: extractBulk, bulkName: bulkName, bulkHasNames: bulkHasNames, splitCsvLine: splitCsvLine,
     classifyValue: classifyValue, toShareHash: toShareHash, fromShareHash: fromShareHash, snippets: snippets
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
