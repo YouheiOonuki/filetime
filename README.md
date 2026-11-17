@@ -12,7 +12,7 @@ yorozu-craft のツールの1つです（共通ルールは [youheioonuki.github
 - **特別な値の説明**: accountExpires の `0`・`9223372036854775807`（無期限）、pwdLastSet の `0`（次回ログオン時に変更）と `-1`、lockoutTime の `0`、msDS-UserPasswordExpiryTimeComputed の `0`・最大値、maxPwdAge の最小値（無期限）。負の値（maxPwdAge・lockoutDuration などの期間）は日・時・分で表示
 - 属性ごとの注意: lastLogonTimestamp の 9〜14 日の遅れ、lastLogon は DC ごと、accountExpires は ADUC で 1 日前に表示、pwdLastSet からの経過日数と最大有効期間（既定 42 日）での期限
 - **日時 → 数値**: LDAP フィルター・Get-ADUser -Filter の例つき
-- **まとめて変換**: `Get-ADUser -Properties *`・ldifde・csvde の出力、「名前=値」、18 桁の数の並びから、日時の属性と FILETIME らしい大きさの数だけを拾って表に。TSV でコピー
+- **まとめて変換**: `Get-ADUser -Properties *`・ldifde・csvde の出力、`Format-Table` の表、`Export-Csv` の CSV（`#TYPE` の行つきも）、「名前=値」、18 桁の数の並びから、日時の属性と FILETIME らしい大きさの数だけを拾って表に。TSV でコピー
 - PowerShell・w32tm の確認用コマンドを文字として表示（実行はしない）
 - 共有リンク `#v=値&a=属性名`（`#` 以降なのでサーバーに送られない）
 - 結果の直後に ADSearch への導線を 1 行（サイト README の 21）

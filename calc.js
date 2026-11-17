@@ -467,15 +467,19 @@
   /**
    * 貼り付けた文字列から、変換できる値をすべて拾う。
    * 対応: Get-ADUser -Properties * の「名前 : 値」、ldifde の「名前: 値」、「名前=値」、csvde の CSV（1 行目が見出し）、
-   *       数値だけの行・文の中の 18 桁の数（FILETIME らしい大きさのものだけ）
-   * @returns {Array<{line:number, attr:string, raw:string, ticks:bigint, source:string, value?:bigint, guessed?:boolean, dn:string}>}
+   *       Export-Csv の CSV（先頭の #TYPE の行は飛ばす）、Format-Table の表・数値だけの行・文の中の 18 桁の数（FILETIME らしい大きさのものだけ）
+   * label: その行の、値に使わなかった字（CSV は値の列と dn の列を除いたセルを空白でつなぐ。表や文は拾った数を除いた残り）。列の意味は推測しない
+   * @returns {Array<{line:number, attr:string, raw:string, ticks:bigint, source:string, value?:bigint, guessed?:boolean, dn:string, label:string}>}
    */
   function extractBulk(text, maxItems) {
     var lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
     var out = [];
     var limit = maxItems || 5000;
     var first = -1;
-    for (var i = 0; i < lines.length; i++) { if (lines[i].trim()) { first = i; break; } }
+    for (var i = 0; i < lines.length; i++) {
+      if (!lines[i].trim() || /^\s*#TYPE\s/i.test(lines[i])) continue;   // Export-Csv（PowerShell 5.1）が 1 行目に書く型の名前
+      first = i; break;
+    }
     // csvde: 1 行目に見出しがカンマ区切りで並ぶ（知っている属性名が 1 つ以上ある）
     if (first >= 0 && lines[first].indexOf(',') >= 0 && !LINE_RE.test(lines[first])) {
       var head = splitCsvLine(lines[first]).map(function (h) { return h.trim(); });
@@ -484,10 +488,15 @@
         for (var r = first + 1; r < lines.length && out.length < limit; r++) {
           if (!lines[r].trim()) continue;
           var cells = splitCsvLine(lines[r]);
-          for (var c = 0; c < head.length && out.length < limit; c++) {
-            if (c === dnCol || !head[c]) continue;
-            var cv = classifyValue(head[c], cells[c]);
-            if (cv) out.push(Object.assign({ line: r + 1, attr: canonicalAttr(head[c]), raw: String(cells[c]).trim(), dn: dnCol >= 0 ? (cells[dnCol] || '') : '' }, cv));
+          var found = [], rest = [];
+          for (var c = 0; c < cells.length; c++) {
+            var cv = c < head.length && c !== dnCol && head[c] ? classifyValue(head[c], cells[c]) : null;
+            if (cv) found.push([c, cv]);
+            else if (c !== dnCol && String(cells[c]).trim()) rest.push(String(cells[c]).trim());
+          }
+          for (var f = 0; f < found.length && out.length < limit; f++) {
+            var fc = found[f][0];
+            out.push(Object.assign({ line: r + 1, attr: canonicalAttr(head[fc]), raw: String(cells[fc]).trim(), dn: dnCol >= 0 ? (cells[dnCol] || '') : '', label: rest.join(' ') }, found[f][1]));
           }
         }
         return out;
@@ -502,13 +511,19 @@
         if (/^(dn|distinguishedname)$/i.test(m[1])) { dn = m[3].replace(/^:\s*/, ''); continue; }
         if (m[2] === ':' && /^:/.test(m[3])) continue;                   // ldifde の base64（名前:: 値）
         var cv2 = classifyValue(m[1], m[3]);
-        if (cv2) out.push(Object.assign({ line: n + 1, attr: canonicalAttr(m[1]), raw: m[3], dn: dn }, cv2));
+        if (cv2) out.push(Object.assign({ line: n + 1, attr: canonicalAttr(m[1]), raw: m[3], dn: dn, label: '' }, cv2));
         continue;
       }
-      var re = /(^|[^\w.])(-?\d{17,19}|0x[0-9a-f]{15,16})(?![\w.])/gi, mm;
-      while ((mm = re.exec(line)) && out.length < limit) {
+      var re = /(^|[^\w.])(-?\d{17,19}|0x[0-9a-f]{15,16})(?![\w.])/gi, mm, hits = [];
+      while ((mm = re.exec(line))) {
         var cv3 = classifyValue('', mm[2]);
-        if (cv3) out.push(Object.assign({ line: n + 1, attr: '', raw: mm[2], dn: dn }, cv3));
+        if (cv3) hits.push({ at: mm.index + mm[1].length, raw: mm[2], cv: cv3 });
+      }
+      var label = line;
+      for (var k = hits.length - 1; k >= 0; k--) label = label.slice(0, hits[k].at) + ' ' + label.slice(hits[k].at + hits[k].raw.length);
+      label = label.replace(/\s+/g, ' ').trim();
+      for (var h = 0; h < hits.length && out.length < limit; h++) {
+        out.push(Object.assign({ line: n + 1, attr: '', raw: hits[h].raw, dn: dn, label: label }, hits[h].cv));
       }
     }
     return out;
