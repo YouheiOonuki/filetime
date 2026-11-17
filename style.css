@@ -163,6 +163,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .bulk-table th, .bulk-table td { border: 1px solid var(--border); padding: var(--sp-1) var(--sp-2); text-align: left; vertical-align: top; }
 .bulk-table th { background: var(--bg-2); white-space: nowrap; }
 .bulk-table td:nth-child(4), .bulk-table td:nth-child(5) { white-space: nowrap; }
+.bulk-table.named td:nth-child(6), .bulk-table td.name { white-space: nowrap; }   /* 名前の列があると UTC・選んだタイムゾーンは 5・6 列目 */
 .bulk-table td:last-child { min-width: 16em; }
 .bulk-table td.num { font-family: ui-monospace, "Cascadia Mono", Consolas, "Noto Sans Mono", monospace; white-space: nowrap; }
 .lang-switch { font-size: var(--fs-s); margin-top: var(--sp-1); }
