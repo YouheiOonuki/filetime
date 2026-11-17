@@ -118,7 +118,7 @@
             <tr><td>.NET DateTime.Ticks</td><td><code>639000000000000000</code></td><td>100 ns since 0001-01-01; offset from FILETIME 504911232000000000</td></tr>
           </tbody>
         </table>
-        <p>"Auto" reads 10–11 digits as Unix seconds, 12–14 digits as Unix milliseconds and anything else as FILETIME. If a FILETIME would land after 2200, the .NET ticks reading is shown too.</p>
+        <p>"Auto" reads up to 11 digits as Unix seconds (until the year 5138), 12–14 digits as Unix milliseconds and anything else as FILETIME. If a FILETIME would land after 2200, the .NET ticks reading is shown too.</p>
       </details>
     </article>
 
@@ -195,6 +195,7 @@
     <article class="card content" id="changelog">
       <h2>Changelog</h2>
       <ul>
+        <li><time datetime="2026-11-17">2026-11-17</time> "Auto" now reads up to 11 digits as Unix seconds, as the Japanese page says</li>
         <li><time datetime="2026-09-24">2026-09-24</time> Published</li>
       </ul>
     </article>
