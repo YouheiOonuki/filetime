@@ -119,7 +119,7 @@
       copied: 'Copied', copyFail: 'Could not copy. Please select and copy the text.',
       shareDone: 'Link copied. The value is after the # in the link, so it is never sent to a server.',
       bulkCount: 'Converted {n} values', bulkNone: 'No convertible values found. Paste "attribute : value" lines (such as Get-ADUser -Properties * output) or 18-digit numbers.',
-      bulkHead: ['Line', 'Attribute', 'Value', 'UTC', 'Selected time zone', 'Meaning'], bulkName: '', guessed: '(unknown attribute, treated as FILETIME)',
+      bulkHead: ['Line', 'Attribute', 'Value', 'UTC', 'Selected time zone', 'Meaning'], bulkName: 'Name', guessed: '(unknown attribute, treated as FILETIME)',
       bulkLimit: 'Showing the first {n} values.',
       filterNote: 'LDAP filter examples (earlier than this time)', now: 'Now',
       loadedShare: 'Showing the value from a shared link.'
