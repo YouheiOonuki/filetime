@@ -224,6 +224,59 @@ test('まとめて変換: ldifde・csvde・名前=値・数値だけ', () => {
   assert.equal(C.extractBulk('134347122000000000\n'.repeat(50), 10).length, 10);
 });
 
+// Q-321: 情シスが手元で出す 3 つの形（名前は作りもの）。数が全部読める・名前が残る・見出しの行が値にならない
+test('まとめて変換: Format-Table の表は、拾った数を除いた残りを名札に', () => {
+  const t = [
+    'Name            SamAccountName pwdLastSet         lastLogonTimestamp',
+    '----            -------------- ----------         ------------------',
+    'Sato Ichiro     sato.i         134347122000000000 134340000000000000',
+    'Suzuki Hanako   suzuki.h       0                  9223372036854775807',
+    'Ito Saburo      ito.s          133900000000000000 134344000000000000'
+  ].join('\r\n');
+  const a = C.extractBulk(t);
+  assert.deepEqual(a.map(i => i.raw), ['134347122000000000', '134340000000000000', '133900000000000000', '134344000000000000']);
+  assert.deepEqual(a.map(i => i.line), [3, 3, 5, 5]);
+  assert.equal(a[0].label, 'Sato Ichiro sato.i');
+  assert.equal(a[3].label, 'Ito Saburo ito.s');
+  assert.equal(a[0].attr, '');                       // 列の意味は推測しない
+  assert.equal(C.formatUtc(a[0].ticks), C.formatUtc(134347122000000000n));
+});
+
+test('まとめて変換: Export-Csv の CSV（#TYPE の行あり・なし）は、値の列のほかのセルを名札に', () => {
+  const body = [
+    '"Name","SamAccountName","pwdLastSet","lastLogonTimestamp"',
+    '"Sato Ichiro","sato.i","134347122000000000","134340000000000000"',
+    '"Suzuki Hanako","suzuki.h","0","9223372036854775807"'
+  ];
+  for (const text of [body.join('\r\n'), ['#TYPE Microsoft.ActiveDirectory.Management.ADUser'].concat(body).join('\r\n')]) {
+    const b = C.extractBulk(text);
+    assert.deepEqual(b.map(i => i.attr), ['pwdLastSet', 'lastLogonTimestamp', 'pwdLastSet', 'lastLogonTimestamp']);
+    assert.deepEqual(b.map(i => i.raw), ['134347122000000000', '134340000000000000', '0', '9223372036854775807']);
+    assert.equal(b[0].label, 'Sato Ichiro sato.i');
+    assert.equal(b[2].label, 'Suzuki Hanako suzuki.h');
+    assert.equal(b[3].value, 9223372036854775807n);   // 特別な値の扱いは今のまま
+  }
+  // csvde（dn の列あり）: dn は dn に、名札には入れない
+  const d = C.extractBulk('DN,sAMAccountName,pwdLastSet\n"CN=Taro,OU=Users,DC=example,DC=test",taro,134347122000000000\n');
+  assert.equal(d[0].dn, 'CN=Taro,OU=Users,DC=example,DC=test');
+  assert.equal(d[0].label, 'taro');
+});
+
+test('まとめて変換: LDIF は dn を名前に、dn の行は値にしない', () => {
+  const l = [
+    'dn: CN=Sato Ichiro,OU=Staff,DC=example,DC=test',
+    'pwdLastSet: 134347122000000000',
+    '',
+    'dn: CN=Ito Saburo,OU=Staff,DC=example,DC=test',
+    'lastLogonTimestamp: 134344000000000000'
+  ].join('\n');
+  const c = C.extractBulk(l);
+  assert.deepEqual(c.map(i => [i.line, i.attr, i.dn]), [
+    [2, 'pwdLastSet', 'CN=Sato Ichiro,OU=Staff,DC=example,DC=test'],
+    [5, 'lastLogonTimestamp', 'CN=Ito Saburo,OU=Staff,DC=example,DC=test']
+  ]);
+});
+
 test('共有リンク #v=', () => {
   assert.equal(C.toShareHash('134000000000000000', 'pwdLastSet'), '#v=134000000000000000&a=pwdLastSet');
   assert.deepEqual(C.fromShareHash('#v=134000000000000000&a=pwdLastSet'), { value: '134000000000000000', attr: 'pwdLastSet' });
