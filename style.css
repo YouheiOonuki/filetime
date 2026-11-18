@@ -121,7 +121,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   margin-top: var(--sp-2);
 }
 .footer-nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) 1.1rem; margin-bottom: var(--sp-2); }
-.footer-nav a { color: var(--muted); text-decoration: none; }
+.footer-nav a { color: var(--muted); text-decoration: none; min-width: var(--tap); justify-content: center; }   /* 短い名前（About）も押す所は 44px 四方（Q-447） */
 .footer-nav a:hover, .footer-nav a[aria-current="page"] { color: var(--accent); }
 
 /* ===== FILETIME 変換の部品 ===== */
@@ -133,7 +133,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .field-row .field { flex: 1 1 12rem; min-width: 0; }
 .field-row .field select { max-width: 100%; }
 .inline-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
-.examples { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); align-items: center; margin: 0 0 var(--sp-3); }
+.examples { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin: 0 0 var(--sp-3); }
 .examples .small { margin: 0; }
 .result { border-top: 1px solid var(--border); padding-top: var(--sp-3); margin-top: 0; }
 .result .read { margin: 0 0 var(--sp-2); }
